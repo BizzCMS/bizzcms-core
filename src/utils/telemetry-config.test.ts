@@ -22,129 +22,68 @@ describe('telemetry-config', () => {
     process.env = originalEnv
   })
 
+  // BizzCMS: telemetry is opt-in and has no default endpoint (nothing is ever sent to a third party).
   describe('getDefaultTelemetryConfig', () => {
-    it('should return default configuration with telemetry enabled', () => {
-      delete process.env.SONICJS_TELEMETRY_ENDPOINT
+    it('is disabled with no endpoint by default', () => {
+      delete process.env.BIZZCMS_TELEMETRY_ENDPOINT
       delete process.env.NODE_ENV
-
       const config = getDefaultTelemetryConfig()
-
-      expect(config.enabled).toBe(true)
-      expect(config.host).toBe('https://stats.sonicjs.com')
+      expect(config.enabled).toBe(false)
+      expect(config.host).toBe('')
       expect(config.debug).toBe(false)
     })
 
-    it('should use custom endpoint from environment variable', () => {
-      process.env.SONICJS_TELEMETRY_ENDPOINT = 'https://custom.endpoint.com'
-
-      const config = getDefaultTelemetryConfig()
-
-      expect(config.host).toBe('https://custom.endpoint.com')
+    it('uses the endpoint from BIZZCMS_TELEMETRY_ENDPOINT', () => {
+      process.env.BIZZCMS_TELEMETRY_ENDPOINT = 'https://stats.example.com'
+      expect(getDefaultTelemetryConfig().host).toBe('https://stats.example.com')
     })
 
-    it('should enable debug mode in development environment', () => {
+    it('enables debug mode in development', () => {
       process.env.NODE_ENV = 'development'
-
-      const config = getDefaultTelemetryConfig()
-
-      expect(config.debug).toBe(true)
-    })
-
-    it('should disable debug mode in production environment', () => {
-      process.env.NODE_ENV = 'production'
-
-      const config = getDefaultTelemetryConfig()
-
-      expect(config.debug).toBe(false)
+      expect(getDefaultTelemetryConfig().debug).toBe(true)
     })
   })
 
   describe('isTelemetryEnabled', () => {
-    it('should return true by default (opt-out model)', () => {
-      delete process.env.SONICJS_TELEMETRY
+    beforeEach(() => {
+      delete process.env.BIZZCMS_TELEMETRY
+      delete process.env.BIZZCMS_TELEMETRY_ENDPOINT
       delete process.env.DO_NOT_TRACK
-
-      const enabled = isTelemetryEnabled()
-
-      expect(enabled).toBe(true)
-    })
-
-    it('should return false when SONICJS_TELEMETRY is "false"', () => {
-      process.env.SONICJS_TELEMETRY = 'false'
-
-      const enabled = isTelemetryEnabled()
-
-      expect(enabled).toBe(false)
-    })
-
-    it('should return false when SONICJS_TELEMETRY is "0"', () => {
-      process.env.SONICJS_TELEMETRY = '0'
-
-      const enabled = isTelemetryEnabled()
-
-      expect(enabled).toBe(false)
-    })
-
-    it('should return false when SONICJS_TELEMETRY is "disabled"', () => {
-      process.env.SONICJS_TELEMETRY = 'disabled'
-
-      const enabled = isTelemetryEnabled()
-
-      expect(enabled).toBe(false)
-    })
-
-    it('should return false when DO_NOT_TRACK is "1"', () => {
-      process.env.DO_NOT_TRACK = '1'
-
-      const enabled = isTelemetryEnabled()
-
-      expect(enabled).toBe(false)
-    })
-
-    it('should return false when DO_NOT_TRACK is "true"', () => {
-      process.env.DO_NOT_TRACK = 'true'
-
-      const enabled = isTelemetryEnabled()
-
-      expect(enabled).toBe(false)
-    })
-
-    it('should return true when DO_NOT_TRACK has other values', () => {
-      process.env.DO_NOT_TRACK = '0'
       delete process.env.SONICJS_TELEMETRY
-
-      const enabled = isTelemetryEnabled()
-
-      expect(enabled).toBe(true)
     })
 
-    it('should return true when SONICJS_TELEMETRY has other values like "true"', () => {
+    it('is false by default (opt-in)', () => {
+      expect(isTelemetryEnabled()).toBe(false)
+    })
+
+    it('ignores the old SONICJS_TELEMETRY variable', () => {
       process.env.SONICJS_TELEMETRY = 'true'
-      delete process.env.DO_NOT_TRACK
+      expect(isTelemetryEnabled()).toBe(false)
+    })
 
-      const enabled = isTelemetryEnabled()
+    it('stays false when opted in without an endpoint', () => {
+      process.env.BIZZCMS_TELEMETRY = 'true'
+      expect(isTelemetryEnabled()).toBe(false)
+    })
 
-      expect(enabled).toBe(true)
+    it('is true only with opt-in AND an endpoint', () => {
+      process.env.BIZZCMS_TELEMETRY = 'true'
+      process.env.BIZZCMS_TELEMETRY_ENDPOINT = 'https://stats.example.com'
+      expect(isTelemetryEnabled()).toBe(true)
+    })
+
+    it('DO_NOT_TRACK always wins', () => {
+      process.env.BIZZCMS_TELEMETRY = 'true'
+      process.env.BIZZCMS_TELEMETRY_ENDPOINT = 'https://stats.example.com'
+      process.env.DO_NOT_TRACK = '1'
+      expect(isTelemetryEnabled()).toBe(false)
     })
   })
 
   describe('getTelemetryConfig', () => {
-    it('should merge default config with enabled state', () => {
-      delete process.env.SONICJS_TELEMETRY
-      delete process.env.DO_NOT_TRACK
-
-      const config = getTelemetryConfig()
-
-      expect(config.enabled).toBe(true)
-      expect(config.host).toBe('https://stats.sonicjs.com')
-    })
-
-    it('should reflect disabled telemetry in config', () => {
-      process.env.SONICJS_TELEMETRY = 'false'
-
-      const config = getTelemetryConfig()
-
-      expect(config.enabled).toBe(false)
+    it('is disabled unless opted in', () => {
+      delete process.env.BIZZCMS_TELEMETRY
+      expect(getTelemetryConfig().enabled).toBe(false)
     })
   })
 

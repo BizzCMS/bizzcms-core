@@ -394,7 +394,8 @@ describe('Admin Users - Profile on Edit Page', () => {
       // No profile fields + no custom config → profile write skipped entirely.
       expect(writeProfileData).not.toHaveBeenCalled()
       // Only 3 prepare calls: getRoles (role validation) + uniqueness check + user update.
-      expect(mockDb.prepare.mock.calls.length).toBe(3)
+      // BizzCMS: no role submitted → the current role is read (one extra query) and kept, never Administrator
+      expect(mockDb.prepare.mock.calls.length).toBe(4)
     })
 
     it('should write custom profile data even when no standard profile fields are set (issue #768)', async () => {

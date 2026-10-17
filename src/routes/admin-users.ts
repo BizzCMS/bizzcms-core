@@ -60,9 +60,16 @@ const LANGUAGES = [
   { value: 'zh', label: 'Chinese' }
 ]
 
+// BizzCMS: auth_user.role stores the role NAME ("admin", "editor", "couple"…), not the RBAC document slug
+// ("role-admin"). Options, validation and the edit form all use the name, so the stored role is shown selected
+// and saved unchanged (the slug made every edit form show and save the first role, Administrator).
 async function fetchRoleOptions(db: any): Promise<Array<{ value: string; label: string }>> {
   const roles = await new RbacService(db).getRoles()
-  return roles.map((r) => ({ value: r.id, label: r.display_name }))
+  return roles.map((r) => ({ value: r.name, label: r.display_name }))
+}
+
+async function roleNames(db: any): Promise<string[]> {
+  return (await new RbacService(db).getRoles()).map((r) => r.name)
 }
 
 /**
@@ -567,6 +574,7 @@ userRoutes.get('/users', async (c) => {
       totalUsers,
       searchFilter: search,
       roleFilter,
+      roleOptions: await fetchRoleOptions(db),
       statusFilter,
       success: successMessage,
       pagination: {
@@ -670,8 +678,9 @@ userRoutes.post('/users/new', async (c) => {
     const phone = sanitizeInput(formData.get('phone')?.toString()) || null
     const bio = sanitizeInput(formData.get('bio')?.toString()) || null
     const roleInput = formData.get('role')?.toString() || ''
-    const validRoles = (await new RbacService(db).getRoles()).map((r) => r.id)
-    const role = validRoles.includes(roleInput) ? roleInput : (validRoles[0] ?? 'admin')
+    const validRoles = await roleNames(db)
+    // An unknown or missing role never falls back to a privileged one.
+    const role = validRoles.includes(roleInput) ? roleInput : 'viewer'
     const password = formData.get('password')?.toString() || ''
     const confirmPassword = formData.get('confirm_password')?.toString() || ''
     const isActive = formData.get('is_active') === '1'
@@ -1006,8 +1015,10 @@ userRoutes.put('/users/:id', async (c) => {
     const email = formData.get('email')?.toString()?.trim().toLowerCase() || ''
     const phone = sanitizeInput(formData.get('phone')?.toString()) || null
     const roleInput = formData.get('role')?.toString() || ''
-    const validRoles = (await new RbacService(db).getRoles()).map((r) => r.id)
-    const role = validRoles.includes(roleInput) ? roleInput : (validRoles[0] ?? 'admin')
+    const validRoles = await roleNames(db)
+    // An unknown or missing role keeps the user's current role (never falls back to Administrator).
+    const role = validRoles.includes(roleInput) ? roleInput
+      : (((await db.prepare('SELECT role FROM auth_user WHERE id = ?').bind(userId).first()) as { role?: string } | null)?.role ?? 'viewer')
     const isActive = formData.get('is_active') === '1'
     const emailVerified = formData.get('email_verified') === '1'
 

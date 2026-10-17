@@ -26,31 +26,23 @@ function safeGetEnv(key: string): string | undefined {
  * Uses lazy evaluation to avoid accessing process.env at module load time
  */
 export function getDefaultTelemetryConfig(): TelemetryConfig {
+  // BizzCMS: no default endpoint. Usage data is never sent anywhere unless a site sets its own endpoint.
   return {
-    enabled: true,
-    host: safeGetEnv('SONICJS_TELEMETRY_ENDPOINT') || 'https://stats.sonicjs.com',
+    enabled: false,
+    host: safeGetEnv('BIZZCMS_TELEMETRY_ENDPOINT') || '',
     debug: safeGetEnv('NODE_ENV') === 'development'
   }
 }
 
 /**
- * Check if telemetry is enabled via environment variables
+ * Telemetry is OFF by default (BizzCMS, opt-in): it runs only when BIZZCMS_TELEMETRY is "true" AND
+ * BIZZCMS_TELEMETRY_ENDPOINT names the site's own endpoint. DO_NOT_TRACK always wins.
  */
 export function isTelemetryEnabled(): boolean {
-  // Check for explicit opt-out
-  const telemetryEnv = safeGetEnv('SONICJS_TELEMETRY')
-  if (telemetryEnv === 'false' || telemetryEnv === '0' || telemetryEnv === 'disabled') {
-    return false
-  }
-
-  // Check for DO_NOT_TRACK environment variable (common standard)
   const doNotTrack = safeGetEnv('DO_NOT_TRACK')
-  if (doNotTrack === '1' || doNotTrack === 'true') {
-    return false
-  }
-
-  // Default to enabled (opt-out model)
-  return true
+  if (doNotTrack === '1' || doNotTrack === 'true') return false
+  const optIn = safeGetEnv('BIZZCMS_TELEMETRY')
+  return (optIn === 'true' || optIn === '1') && !!safeGetEnv('BIZZCMS_TELEMETRY_ENDPOINT')
 }
 
 /**

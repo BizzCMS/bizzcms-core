@@ -1,3 +1,4 @@
+import { escapeHtml } from '../../utils/sanitize'
 import { renderAdminLayoutCatalyst, AdminLayoutCatalystData } from '../layouts/admin-layout-catalyst.template'
 import { renderPagination, PaginationData } from '../pagination.template'
 import { renderAlert } from '../alert.template'
@@ -27,6 +28,8 @@ export interface UsersListPageData {
   totalUsers: number
   statusFilter?: string
   roleFilter?: string
+  /** Role filter options (role name + label); from the RBAC roles. */
+  roleOptions?: Array<{ value: string; label: string }>
   searchFilter?: string
   error?: string
   success?: string
@@ -327,10 +330,7 @@ export function renderUsersListPage(data: UsersListPageData): string {
                     class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white/5 dark:bg-white/5 py-1.5 pl-3 pr-8 text-base text-zinc-950 dark:text-white outline outline-1 -outline-offset-1 outline-purple-500/30 dark:outline-purple-400/30 *:bg-white dark:*:bg-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-purple-500 dark:focus-visible:outline-purple-400 sm:text-sm/6"
                   >
                     <option value="" ${!data.roleFilter ? 'selected' : ''}>All Roles</option>
-                    <option value="admin" ${data.roleFilter === 'admin' ? 'selected' : ''}>Admin</option>
-                    <option value="editor" ${data.roleFilter === 'editor' ? 'selected' : ''}>Editor</option>
-                    <option value="author" ${data.roleFilter === 'author' ? 'selected' : ''}>Author</option>
-                    <option value="viewer" ${data.roleFilter === 'viewer' ? 'selected' : ''}>Viewer</option>
+                    ${(data.roleOptions ?? [{ value: 'admin', label: 'Admin' }, { value: 'editor', label: 'Editor' }, { value: 'author', label: 'Author' }, { value: 'viewer', label: 'Viewer' }]).map((r) => `<option value="${escapeHtml(r.value)}" ${data.roleFilter === r.value ? 'selected' : ''}>${escapeHtml(r.label)}</option>`).join('')}
                   </select>
                   <svg viewBox="0 0 16 16" fill="currentColor" data-slot="icon" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-purple-600 dark:text-purple-400 sm:size-4">
                     <path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd" />
