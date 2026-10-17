@@ -32,5 +32,5 @@ Build tools are pinned (`tsup` 8.5.1, `esbuild` 0.25.12) so the output stays rep
 
 ## Licence
 
-MIT, see [LICENSE](LICENSE). This engine started from the open-source SonicJS core (3.0.0-beta.28), whose
-copyright notice is kept in the licence file.
+MIT, see [LICENSE](LICENSE). The engine started from an open-source MIT-licensed CMS core; its original copyright
+notice is kept in the licence file.
