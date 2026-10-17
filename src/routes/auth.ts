@@ -791,10 +791,16 @@ authRoutes.post('/login/form',
   }
 })
 
-// Test seeding endpoint (only for development/testing)
+// Test seeding endpoint (only for development/testing). Fail-closed: any ENVIRONMENT outside
+// the allow-list (including 'production' and an unset value) gets a 404, so a site that forgets
+// to block the path is still safe.
+const SEED_ENVIRONMENTS = new Set(['development', 'test', 'e2e', 'local'])
 authRoutes.post('/seed-admin',
   rateLimit({ max: 10, windowMs: 60 * 1000, keyPrefix: 'seed-admin' }),
   async (c) => {
+  if (!SEED_ENVIRONMENTS.has(String((c.env as any)?.ENVIRONMENT ?? '').toLowerCase())) {
+    return c.json({ error: 'Not found' }, 404)
+  }
   try {
     const db = c.env.DB
     // Ensure document_types FK targets exist before RBAC seed — D1 enforces the FK
@@ -879,7 +885,7 @@ authRoutes.post('/seed-admin',
     return c.json({ message: 'Seed complete', users: results })
   } catch (error) {
     console.error('Seed admin error:', error)
-    return c.json({ error: 'Failed to seed users', details: error instanceof Error ? error.message : String(error) }, 500)
+    return c.json({ error: 'Failed to seed users' }, 500)
   }
 })
 

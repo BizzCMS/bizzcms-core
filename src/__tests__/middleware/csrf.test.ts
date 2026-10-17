@@ -352,7 +352,7 @@ describe('csrfProtection middleware', () => {
       expect(res.status).toBe(200)
     })
 
-    it('should exempt /auth/seed-admin', async () => {
+    it('should NOT exempt /auth/seed-admin', async () => {
       const app = createApp()
       const res = await app.request(
         createReq('POST', '/auth/seed-admin', {
@@ -361,7 +361,7 @@ describe('csrfProtection middleware', () => {
         {},
         { JWT_SECRET: TEST_SECRET }
       )
-      expect(res.status).toBe(200)
+      expect(res.status).toBe(403)
     })
 
     it('should exempt /auth/accept-invitation', async () => {

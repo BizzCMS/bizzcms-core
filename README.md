@@ -29,6 +29,10 @@ Build tools are pinned (`tsup` 8.5.1, `esbuild` 0.25.12) so the output stays rep
 - Telemetry is off. It runs only with `BIZZCMS_TELEMETRY=true` and a site's own `BIZZCMS_TELEMETRY_ENDPOINT`;
   `DO_NOT_TRACK` always wins. Nothing is sent to a third party.
 - Admin › Users stores and shows roles by name; an unknown role never becomes Administrator.
+- `POST /auth/seed-admin` exists only in development, test, e2e and local environments.
+- Production refuses to start without `JWT_SECRET`.
+- OAuth never links a provider to an existing account by e-mail alone.
+- Uploaded SVG/HTML/XML files are served with a sandbox CSP and `nosniff`.
 
 ## Licence
 

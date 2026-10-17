@@ -20,7 +20,7 @@ export function wrapAdminPage(opts: {
   <title>${opts.title} - BizzCMS</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
-  <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.3/dist/htmx.min.js" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
   <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
 

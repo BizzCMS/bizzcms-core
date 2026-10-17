@@ -32,13 +32,14 @@ function createMockEnv(overrides: Partial<{
 }
 
 // Create test app with mock environment
-function createTestApp(env: any = createMockEnv()) {
+function createTestApp(env: any = createMockEnv(), user: any = { userId: 'u1', email: 'a@test.local', role: 'admin' }) {
   const app = new Hono()
 
-  // Add middleware to set env
+  // Add middleware to set env (and the signed-in user; /info, /stats and /env are admin-only)
   app.use('*', async (c, next) => {
     c.env = env
     c.set('appVersion', '2.0.0')
+    if (user) c.set('user' as never, user as never)
     await next()
   })
 
@@ -49,6 +50,15 @@ function createTestApp(env: any = createMockEnv()) {
 }
 
 describe('API System Routes', () => {
+  describe('admin-only endpoints', () => {
+    for (const path of ['/api/system/info', '/api/system/stats', '/api/system/env']) {
+      it(`${path} needs a signed-in administrator`, async () => {
+        expect((await createTestApp(createMockEnv(), null).request(path)).status).toBe(401)
+        expect((await createTestApp(createMockEnv(), { userId: 'u2', email: 'v@test.local', role: 'viewer' }).request(path)).status).toBe(403)
+      })
+    }
+  })
+
   describe('GET /api/system/health', () => {
     it('should return healthy status when database is available', async () => {
       const env = createMockEnv()

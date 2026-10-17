@@ -1,6 +1,6 @@
 {
   "name": "bizzcms-core",
-  "version": "3.0.0-beta.28",
+  "version": "3.0.0-beta.28-bizzcms.1",
   "description": "BizzCMS core: the CMS engine behind BizzCMS sites, for Cloudflare Workers, D1 and R2.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -97,10 +97,10 @@
     "zod": "^3.0.0 || ^4.0.0"
   },
   "dependencies": {
-    "@better-auth/drizzle-adapter": "^1.6.23",
-    "@better-auth/telemetry": "^1.6.23",
+    "@better-auth/drizzle-adapter": "1.6.33",
+    "@better-auth/telemetry": "1.6.33",
     "@cf-wasm/resvg": "^0.3.3",
-    "better-auth": "^1.6.13",
+    "better-auth": "1.6.33",
     "better-auth-cloudflare": "^0.3.0",
     "csv-parse": "^6.2.1",
     "drizzle-zod": "^0.8.3",
@@ -140,5 +140,8 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  "author": "BizzCMS"
+  "author": "BizzCMS",
+  "overrides": {
+    "@better-auth/core": "1.6.33"
+  }
 }

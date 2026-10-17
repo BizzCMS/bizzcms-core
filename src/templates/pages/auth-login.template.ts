@@ -16,7 +16,7 @@ export function renderLoginPage(data: LoginPageData, demoLoginActive: boolean = 
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Login - BizzCMS</title>
       <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-      <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+      <script src="https://unpkg.com/htmx.org@2.0.3/dist/htmx.min.js" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
       <script src="https://cdn.tailwindcss.com"></script>
       <script>
         tailwind.config = {

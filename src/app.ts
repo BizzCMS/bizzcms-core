@@ -401,6 +401,17 @@ export function createBizzCMSApp(config: BizzCMSConfig = {}): BizzCMSApp {
     await next()
   })
 
+  // A missing JWT_SECRET would make sessions and CSRF tokens use the public development
+  // placeholder key. Refuse to serve in production rather than run on a known key.
+  app.use('*', async (c, next) => {
+    const envName = String((c.env as any)?.ENVIRONMENT ?? '').toLowerCase()
+    if ((envName === 'production' || envName === 'staging') && !(c.env as any)?.JWT_SECRET) {
+      console.error('[bizzcms] JWT_SECRET is not set; refusing to serve. Run: wrangler secret put JWT_SECRET')
+      return c.text('Server misconfigured', 500)
+    }
+    return next()
+  })
+
   // Metrics middleware - track all requests for real-time analytics
   app.use('*', metricsMiddleware())
 
@@ -595,8 +606,10 @@ export function createBizzCMSApp(config: BizzCMSConfig = {}): BizzCMSApp {
     try {
       const { RbacService } = await import('./services/rbac')
       perms = await new RbacService(c.env.DB, c.env.CACHE_KV).permissionsForUser(user.userId)
-    } catch {
-      return next() // fail open to the route's own requireRbac gate
+    } catch (err) {
+      // Fail closed: without the permission list we cannot tell what this user may reach.
+      console.error('[admin] RBAC permissions unavailable', err)
+      return c.text('Service temporarily unavailable', 503)
     }
 
     // Cache for requireRbac fast-path — avoids a DB hit per middleware call.
@@ -835,6 +848,13 @@ export function createBizzCMSApp(config: BizzCMSConfig = {}): BizzCMSApp {
       headers.set('Access-Control-Allow-Origin', '*') // Allow CORS for media files
       headers.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS')
       headers.set('Access-Control-Allow-Headers', 'Content-Type')
+      headers.set('X-Content-Type-Options', 'nosniff')
+      // Uploaded SVG/HTML/XML opened directly must not run script on the site origin.
+      // <img> rendering is unaffected by the response CSP.
+      const ct = (object.httpMetadata?.contentType || '').toLowerCase()
+      if (/svg|html|xml|javascript/.test(ct)) {
+        headers.set('Content-Security-Policy', "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox")
+      }
 
       return new Response(object.body as any, {
         headers

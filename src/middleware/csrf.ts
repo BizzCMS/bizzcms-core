@@ -120,7 +120,6 @@ const DEFAULT_EXEMPT_PATHS = [
   '/auth/logout',
   '/auth/register',
   '/auth/refresh',
-  '/auth/seed-admin',
   '/test-seed-defaults',
   '/test-cleanup',
   '/auth/accept-invitation',

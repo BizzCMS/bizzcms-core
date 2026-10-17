@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { requireAuth } from '../middleware'
+import { escapeHtml } from '../utils/sanitize'
 import { renderFormsListPage } from '../templates/pages/admin-forms-list.template'
 import { renderFormBuilderPage, type FormBuilderPageData } from '../templates/pages/admin-forms-builder.template'
 import { renderFormCreatePage } from '../templates/pages/admin-forms-create.template'
@@ -438,7 +439,7 @@ adminFormsRoutes.get('/:id/submissions', async (c) => {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Submissions - ${form.display_name}</title>
+        <title>Submissions - ${escapeHtml(String(form.display_name ?? ''))}</title>
         <style>
           body { font-family: system-ui; padding: 20px; }
           h1 { margin-bottom: 20px; }
@@ -451,7 +452,7 @@ adminFormsRoutes.get('/:id/submissions', async (c) => {
       </head>
       <body>
         <a href="/admin/forms" class="back-link">← Back to Forms</a>
-        <h1>Submissions: ${form.display_name}</h1>
+        <h1>Submissions: ${escapeHtml(String(form.display_name ?? ''))}</h1>
         <p>Total submissions: ${submissions.results.length}</p>
         ${submissions.results.length > 0 ? `
           <table>
@@ -465,9 +466,9 @@ adminFormsRoutes.get('/:id/submissions', async (c) => {
             <tbody>
               ${submissions.results.map((sub: any) => `
                 <tr>
-                  <td>${sub.id.substring(0, 8)}</td>
+                  <td>${escapeHtml(String(sub.id).substring(0, 8))}</td>
                   <td>${new Date(sub.submitted_at).toLocaleString()}</td>
-                  <td><pre>${JSON.stringify(JSON.parse(sub.submission_data), null, 2)}</pre></td>
+                  <td><pre>${escapeHtml(JSON.stringify(JSON.parse(sub.submission_data), null, 2))}</pre></td>
                 </tr>
               `).join('')}
             </tbody>

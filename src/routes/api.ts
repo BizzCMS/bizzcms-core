@@ -44,7 +44,9 @@ async function typeReadAllowed(
     anyRbacRoleFound = true
     if (await rbac.isGrantedForRole(p.id, `document_type:${typeName}`, 'read')) return true
   }
-  // No RBAC role found in principal set → legacy/unknown role → default allow
+  // No RBAC role found in principal set → legacy/unknown role → default allow.
+  // Not an escalation: callers only reach this for non-admin/editor users, whose queries are
+  // already forced to published rows, i.e. the same rows an anonymous visitor gets.
   return !anyRbacRoleFound
 }
 

@@ -7,6 +7,7 @@
 
 import { Hono } from 'hono'
 import type { Bindings, Variables } from '../app'
+import { requireRole } from '../middleware/auth'
 import { getCollectionRegistry } from '../services/collection-registry'
 
 export const apiSystemRoutes = new Hono<{ Bindings: Bindings; Variables: Variables }>()
@@ -99,7 +100,8 @@ apiSystemRoutes.get('/health', async (c) => {
  * System information
  * GET /api/system/info
  */
-apiSystemRoutes.get('/info', (c) => {
+// Counts, bindings and feature flags are recon material: administrators only.
+apiSystemRoutes.get('/info', requireRole('admin'), (c) => {
   const appVersion = c.get('appVersion') || '1.0.0'
 
   return c.json({
@@ -128,7 +130,8 @@ apiSystemRoutes.get('/info', (c) => {
  * System stats
  * GET /api/system/stats
  */
-apiSystemRoutes.get('/stats', async (c) => {
+// Counts, bindings and feature flags are recon material: administrators only.
+apiSystemRoutes.get('/stats', requireRole('admin'), async (c) => {
   try {
     const db = c.env.DB
 
@@ -212,7 +215,8 @@ apiSystemRoutes.get('/ping', async (c) => {
  * Environment check
  * GET /api/system/env
  */
-apiSystemRoutes.get('/env', (c) => {
+// Counts, bindings and feature flags are recon material: administrators only.
+apiSystemRoutes.get('/env', requireRole('admin'), (c) => {
   return c.json({
     environment: c.env.ENVIRONMENT || 'production',
     features: {

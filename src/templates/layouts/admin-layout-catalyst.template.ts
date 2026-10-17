@@ -278,9 +278,9 @@ export function renderAdminLayoutCatalyst(
   <script>(function(){try{var c=document.cookie.split(';').reduce(function(v,p){var t=p.trim().split('=');return t[0]==='plugins_menu_open'?t[1]:v;},null);if(c==='0'){document.documentElement.classList.add('plugins-closed');document.addEventListener('DOMContentLoaded',function(){var ch=document.querySelector('[data-plugins-chevron]');if(ch)ch.classList.remove('rotate-180');});};}catch(e){}})();</script>
 
   <!-- Scripts -->
-  <script src="https://unpkg.com/htmx.org@2.0.3"></script>
-  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.3/dist/htmx.min.js" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/alpinejs@3.14.9/dist/cdn.min.js" integrity="sha384-9Ax3MmS9AClxJyd5/zafcXXjxmwFhZCdsT6HJoJjarvCaAkJlk5QDzjLJm+Wdx5F" crossorigin="anonymous" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g" crossorigin="anonymous"></script>
 
   <!-- CSRF: Auto-attach token to all HTMX and fetch requests -->
   <script>

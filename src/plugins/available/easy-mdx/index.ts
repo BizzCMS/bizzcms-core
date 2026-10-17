@@ -28,8 +28,8 @@ export default easyMdxPlugin
 export function getMDXEditorScripts(): string {
   return `
     <!-- EasyMDE Markdown Editor -->
-    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
-    <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/easymde@2.18.0/dist/easymde.min.css">
+    <script src="https://unpkg.com/easymde@2.18.0/dist/easymde.min.js"></script>
     <style>
       /* Dark mode styling for EasyMDE */
       .EasyMDEContainer {

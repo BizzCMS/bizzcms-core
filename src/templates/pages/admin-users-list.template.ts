@@ -49,9 +49,10 @@ export function renderUsersListPage(data: UsersListPageData): string {
       className: 'w-12',
       sortable: false,
       render: (value: string | null, row: User) => {
-        const initials = `${row.firstName.charAt(0)}${row.lastName.charAt(0)}`.toUpperCase()
-        if (value) {
-          return `<img src="${value}" alt="${row.firstName} ${row.lastName}" class="w-8 h-8 rounded-full">`
+        const initials = escapeHtml(`${(row.firstName || '').charAt(0)}${(row.lastName || '').charAt(0)}`.toUpperCase())
+        // Only plain http(s) or site-relative avatar URLs; everything else falls back to initials.
+        if (value && /^(https?:\/\/|\/(?!\/))/i.test(value)) {
+          return `<img src="${escapeHtml(value)}" alt="${escapeHtml(`${row.firstName || ''} ${row.lastName || ''}`.trim())}" class="w-8 h-8 rounded-full">`
         }
         return `
           <div class="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 dark:from-cyan-300 dark:to-blue-400 rounded-full flex items-center justify-center">

@@ -24,6 +24,7 @@ import {
 import { AuthManager } from '../../../middleware'
 import { getJwtExpirySecondsFromDb } from '../../../middleware/auth'
 import { hasVerifiedSecondFactor } from '../../../auth/second-factor-guard'
+import { isRegistrationEnabled, isFirstUserRegistration } from '../../../services/auth-validation'
 
 const STATE_COOKIE_NAME = 'oauth_state'
 const STATE_COOKIE_MAX_AGE = 600 // 10 minutes
@@ -239,41 +240,19 @@ function buildOauthApi(): Hono {
           return c.redirect('/auth/login?error=Account is deactivated')
         }
 
-        // Second-factor gate. This branch auto-links a provider identity to a pre-existing LOCAL
-        // account matched only by email address, then mints a session without Better Auth — so
-        // BA's second-factor challenge never runs, and an attacker who controls any provider
-        // account bearing the victim's email address would bypass a second factor the victim
-        // deliberately enrolled in. Even weaker than the already-linked branch above (where the
-        // owner at least chose the provider), since nothing here was ever confirmed by them.
-        //
-        // This route is mounted ahead of the /auth/* catch-all in app.ts, so
-        // guardPasswordlessSecondFactor never sees it; the check has to be here.
-        if (await hasVerifiedSecondFactor((c.env as any).DB, existingUser.id)) {
-          return c.redirect(
-            '/auth/login?error=' +
-            encodeURIComponent('This account uses two-factor authentication. Sign in with your password, then enter your authenticator code.')
-          )
-        }
-
-        // Link OAuth to existing account
-        await oauthService.createOAuthAccount({
-          userId: existingUser.id,
-          provider: providerId,
-          providerAccountId: profile.providerAccountId,
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token,
-          tokenExpiresAt: tokenExpiresAt ?? undefined,
-          profileData: JSON.stringify(profile)
-        })
-
-        const tokenTtl = await getJwtExpirySecondsFromDb((c.env as any).DB, c.env as any)
-        const jwt = await AuthManager.generateToken(
-          existingUser.id, existingUser.email, existingUser.role,
-          (c.env as any).JWT_SECRET, tokenTtl
+        // Never auto-link a provider identity to a local account matched only by e-mail: the
+        // provider's address may be unverified, and the owner never confirmed the link. The owner
+        // signs in with their password and links the provider from their profile (POST /link).
+        return c.redirect(
+          '/auth/login?error=' +
+          encodeURIComponent('An account with this e-mail already exists. Sign in with your password, then link this provider from your profile.')
         )
+      }
 
-        AuthManager.setAuthCookie(c, jwt, { sameSite: 'Lax', maxAge: tokenTtl })
-        return c.redirect('/admin')
+      // Self-registration switch applies to OAuth sign-ups too (this path mints its own JWT,
+      // so the Better Auth create hook never runs).
+      if (!(await isFirstUserRegistration(db)) && !(await isRegistrationEnabled(db))) {
+        return c.redirect('/auth/login?error=' + encodeURIComponent('Registration is currently disabled.'))
       }
 
       // Brand new user — create account from OAuth profile

@@ -148,25 +148,19 @@ describe('OAuth callback — already-linked provider', () => {
   })
 })
 
-describe('OAuth callback — auto-link by email', () => {
+describe('OAuth callback — e-mail matches a local account without a link', () => {
   beforeEach(() => stubProvider(false))
 
-  it('refuses to link and sign in when the account has a verified second factor', async () => {
-    seedEnrolment(1)
-    const res = await callback()
+  // Never auto-link by e-mail: the provider's address may be unverified and the owner never
+  // confirmed the link. Enrolled or not, the owner signs in with the password and links later.
+  for (const [label, enrolled] of [['with a verified second factor', true], ['without a second factor', false]] as const) {
+    it(`refuses to link and sign in ${label}`, async () => {
+      if (enrolled) seedEnrolment(1)
+      const res = await callback()
 
-    expect(decodeURIComponent(res.headers.get('location') ?? '')).toContain(
-      'two-factor authentication',
-    )
-    expect(res.headers.get('set-cookie') ?? '').not.toContain('auth_token=')
-    // Nothing was linked either — a refused sign-in must not leave the provider attached.
-    expect(OAuthService.prototype.createOAuthAccount).not.toHaveBeenCalled()
-  })
-
-  it('links and signs in when the user is not enrolled', async () => {
-    const res = await callback()
-
-    expect(res.headers.get('location')).toBe('/admin')
-    expect(OAuthService.prototype.createOAuthAccount).toHaveBeenCalled()
-  })
+      expect(decodeURIComponent(res.headers.get('location') ?? '')).toContain('already exists')
+      expect(res.headers.get('set-cookie') ?? '').not.toContain('auth_token=')
+      expect(OAuthService.prototype.createOAuthAccount).not.toHaveBeenCalled()
+    })
+  }
 })
