@@ -1,5 +1,17 @@
 # Changelog
 
+## BizzCMS
+
+### 3.0.0-beta.28-bizzcms.1 (unreleased)
+
+- Engine source now lives in BizzCMS/bizzcms-core (imported from SonicJS core 3.0.0-beta.28, MIT).
+- Security: telemetry is opt-in with no default endpoint; Admin › Users roles are stored and shown by name and an
+  unknown role never falls back to Administrator; the role filter lists the real roles.
+- Rebrand: SonicJS → BizzCMS in texts, admin, links and the API (old API names kept as deprecated aliases).
+
+## Upstream history (SonicJS core)
+
+
 All notable changes to `bizzcms-core` will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
