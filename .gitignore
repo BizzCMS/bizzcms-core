@@ -5,3 +5,4 @@ test-results/
 *.log
 .env
 .dev.vars
+*.tgz
