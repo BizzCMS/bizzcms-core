@@ -1,0 +1,144 @@
+{
+  "name": "bizzcms-core",
+  "version": "3.0.0-beta.28",
+  "description": "BizzCMS core: the CMS engine behind BizzCMS sites, for Cloudflare Workers, D1 and R2.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "bizzcms-db-reset": "./bin/db-reset.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./services": {
+      "types": "./dist/services.d.ts",
+      "import": "./dist/services.js",
+      "require": "./dist/services.cjs"
+    },
+    "./middleware": {
+      "types": "./dist/middleware.d.ts",
+      "import": "./dist/middleware.js",
+      "require": "./dist/middleware.cjs"
+    },
+    "./routes": {
+      "types": "./dist/routes.d.ts",
+      "import": "./dist/routes.js",
+      "require": "./dist/routes.cjs"
+    },
+    "./templates": {
+      "types": "./dist/templates.d.ts",
+      "import": "./dist/templates.js",
+      "require": "./dist/templates.cjs"
+    },
+    "./plugins": {
+      "types": "./dist/plugins.d.ts",
+      "import": "./dist/plugins.js",
+      "require": "./dist/plugins.cjs"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.js",
+      "require": "./dist/utils.cjs"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js",
+      "require": "./dist/types.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "migrations",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "generate:migrations": "npx tsx scripts/generate-migrations.ts",
+    "prebuild": "npm run generate:migrations",
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "vitest run",
+    "test:cov": "vitest run --coverage",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "bizzcms",
+    "cms",
+    "headless-cms",
+    "cloudflare-workers",
+    "d1",
+    "r2"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BizzCMS/bizzcms-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BizzCMS/bizzcms-core/issues"
+  },
+  "homepage": "https://bizzcms.com",
+  "peerDependencies": {
+    "@cloudflare/workers-types": "^4.0.0 || ^5.0.0",
+    "drizzle-orm": "^0.44.0",
+    "hono": "^4.0.0",
+    "zod": "^3.0.0 || ^4.0.0"
+  },
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "^1.6.23",
+    "@better-auth/telemetry": "^1.6.23",
+    "@cf-wasm/resvg": "^0.3.3",
+    "better-auth": "^1.6.13",
+    "better-auth-cloudflare": "^0.3.0",
+    "csv-parse": "^6.2.1",
+    "drizzle-zod": "^0.8.3",
+    "graphql": "^16.14.2",
+    "graphql-yoga": "^5.21.2",
+    "highlight.js": "^11.11.1",
+    "linkedom": "^0.18.12",
+    "marked": "^16.4.1",
+    "qrcode-svg": "^1.1.0",
+    "semver": "^7.7.3",
+    "tiny-lru": "^13.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260724.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.9.2",
+    "@types/qrcode-svg": "^1.1.5",
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "@vitest/coverage-v8": "^4.1.9",
+    "better-sqlite3": "^12.10.0",
+    "drizzle-orm": "^0.45.2",
+    "eslint": "^10.8.0",
+    "glob": "^10.5.0",
+    "hono": "^4.12.26",
+    "tsup": "8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.9",
+    "zod": "^4.1.12",
+    "esbuild": "0.25.12",
+    "@types/semver": "^7.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "author": "BizzCMS"
+}

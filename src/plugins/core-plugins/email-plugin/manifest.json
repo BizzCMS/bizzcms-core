@@ -1,0 +1,117 @@
+{
+  "id": "email",
+  "name": "Email",
+  "version": "1.0.0",
+  "description": "Send transactional emails via Cloudflare Email Service. Subscribes to auth lifecycle events (welcome, password reset, password changed) and runs a 5-minute reconciliation cron against the CF GraphQL Activity Log.",
+  "author": "SonicJS Team",
+  "homepage": "https://github.com/sonicjs/sonicjs-ai",
+  "repository": "https://github.com/sonicjs/sonicjs-ai",
+  "license": "MIT",
+  "category": "utilities",
+  "tags": [
+    "email",
+    "cloudflare-email",
+    "transactional",
+    "notifications",
+    "templates"
+  ],
+  "dependencies": [],
+  "capabilities": [
+    "email:send",
+    "hooks.cron:register",
+    "hooks.auth:register"
+  ],
+  "crons": [
+    {
+      "schedule": "*/5 * * * *",
+      "hookFamily": "email-reconciliation"
+    }
+  ],
+  "configSchema": {
+    "provider": {
+      "type": "select",
+      "label": "Email Provider",
+      "required": true,
+      "options": ["resend", "cloudflare"],
+      "description": "Select your email transport. Env var RESEND_API_KEY forces Resend; EMAIL CF binding enables Cloudflare Email Service."
+    },
+    "resendApiKey": {
+      "type": "string",
+      "label": "Resend API Key",
+      "sensitive": true,
+      "required": false,
+      "placeholder": "re_...",
+      "description": "Required when provider is Resend. Overridden by RESEND_API_KEY env var.",
+      "dependsOn": { "field": "provider", "value": "resend" }
+    },
+    "fromEmail": {
+      "type": "string",
+      "label": "From Email",
+      "format": "email",
+      "required": true,
+      "placeholder": "noreply@yourdomain.com",
+      "description": "Sender address. Must be verified with your provider."
+    },
+    "fromName": {
+      "type": "string",
+      "label": "From Name",
+      "required": true,
+      "placeholder": "Your App Name"
+    },
+    "replyTo": {
+      "type": "string",
+      "label": "Reply-To Email",
+      "format": "email",
+      "required": false,
+      "placeholder": "support@yourdomain.com"
+    },
+    "logoUrl": {
+      "type": "string",
+      "label": "Logo URL",
+      "format": "url",
+      "required": false,
+      "placeholder": "https://yourdomain.com/logo.png",
+      "description": "Logo to display in email templates"
+    },
+    "cfAccountId": {
+      "type": "string",
+      "label": "CF Account ID",
+      "required": false,
+      "placeholder": "f61c658f...",
+      "description": "Reconciliation cron credential. Overridden by CF_ACCOUNT_ID env var.",
+      "dependsOn": { "field": "provider", "value": "cloudflare" }
+    },
+    "cfEmailApiToken": {
+      "type": "string",
+      "label": "CF Email API Token",
+      "sensitive": true,
+      "required": false,
+      "placeholder": "••••••••",
+      "description": "API token with Email Routing read permission. Overridden by EMAIL_API_TOKEN env var.",
+      "dependsOn": { "field": "provider", "value": "cloudflare" }
+    }
+  },
+  "permissions": {
+    "email:manage": "Manage email settings",
+    "email:send": "Send emails",
+    "email:view-logs": "View email logs"
+  },
+  "adminMenu": {
+    "label": "Email",
+    "icon": "envelope",
+    "path": "/admin/plugins/email",
+    "order": 80
+  },
+  "iconEmoji": "📧",
+  "is_core": true,
+  "defaultSettings": {
+    "provider": "cloudflare",
+    "resendApiKey": "",
+    "fromEmail": "",
+    "fromName": "",
+    "replyTo": "",
+    "logoUrl": "",
+    "cfAccountId": "",
+    "cfEmailApiToken": ""
+  }
+}

@@ -1,0 +1,1465 @@
+import { Hono } from 'hono'
+// import { zValidator } from '@hono/zod-validator'
+import { z } from 'zod'
+import { getCookie, setCookie } from 'hono/cookie'
+import { html } from 'hono/html'
+import { AuthManager, requireAuth, generateCsrfToken, rateLimit } from '../middleware'
+import { getJwtExpirySecondsFromDb, getJwtRefreshGraceSecondsFromDb } from '../middleware/auth'
+import { renderLoginPage, LoginPageData } from '../templates/pages/auth-login.template'
+import { renderRegisterPage, RegisterPageData } from '../templates/pages/auth-register.template'
+import { getCacheService, CACHE_CONFIGS } from '../services'
+import { getEmailService, hasEmailService } from '../services/email/email-service-singleton'
+import { authValidationService, isRegistrationEnabled, isFirstUserRegistration } from '../services/auth-validation'
+import type { RegistrationData } from '../services/auth-validation'
+import type { Bindings, Variables } from '../app'
+import type { KVNamespace } from '@cloudflare/workers-types'
+import { getUserProfileConfig, getRegistrationFields, getProfileFieldDefaults, sanitizeCustomData, saveCustomData, getCustomData } from '../plugins/core-plugins/user-profiles'
+import { dispatchHookEvent } from '../plugins/hooks/dispatch-event'
+import { RbacService } from '../services/rbac'
+import { bootstrapDocumentTypes } from '../services/document-types-seed'
+import { isDemoModeActive } from '../services/demo-mode'
+
+const JWT_SECRET_FALLBACK = 'your-super-secret-jwt-key-change-in-production'
+
+const DEMO_EMAIL = 'admin@sonicjs.com'
+const STATS_EVENTS_ENDPOINT = 'https://stats.sonicjs.com/v1/events'
+
+async function trackDemoLogin(kv: KVNamespace | undefined): Promise<void> {
+  try {
+    const installationId = (await kv?.get('_sonicjs_installation_id')) ?? 'demo-unknown'
+    await fetch(STATS_EVENTS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: { installation_id: installationId, event_type: 'demo_login', properties: {}, timestamp: new Date().toISOString() }
+      }),
+    })
+  } catch { /* silent — telemetry never blocks auth */ }
+}
+
+/** Minimal, dependency-free HTML body for the password-reset email. */
+function renderPasswordResetEmail(resetLink: string, firstName?: string): string {
+  const greeting = firstName ? `Hi ${firstName},` : 'Hello,'
+  return `<!DOCTYPE html>
+<html><body style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; color: #1f2937; line-height: 1.6;">
+  <div style="max-width: 480px; margin: 0 auto; padding: 24px;">
+    <h2 style="margin: 0 0 16px;">Reset your password</h2>
+    <p>${greeting}</p>
+    <p>We received a request to reset your password. Click the button below to choose a new one. This link is valid for 1 hour.</p>
+    <p style="margin: 24px 0;">
+      <a href="${resetLink}" style="background: #2563eb; color: #fff; padding: 12px 20px; border-radius: 6px; text-decoration: none; display: inline-block;">Reset password</a>
+    </p>
+    <p style="font-size: 13px; color: #6b7280;">If you didn't request this, you can safely ignore this email — your password won't change.</p>
+    <p style="font-size: 13px; color: #6b7280;">Or paste this link into your browser:<br><a href="${resetLink}">${resetLink}</a></p>
+  </div>
+</body></html>`
+}
+
+/** Set a signed CSRF cookie alongside the auth cookie on login/register. */
+async function setCsrfCookie(c: any, maxAge?: number): Promise<void> {
+  const secret = c.env?.JWT_SECRET || JWT_SECRET_FALLBACK
+  const isDev = c.env?.ENVIRONMENT === 'development' || !c.env?.ENVIRONMENT
+  const csrfToken = await generateCsrfToken(secret)
+  const cookieMaxAge = maxAge ?? (await getJwtExpirySecondsFromDb(c.env?.DB, c.env))
+  setCookie(c, 'csrf_token', csrfToken, {
+    httpOnly: false,
+    secure: !isDev,
+    sameSite: 'Strict',
+    path: '/',
+    maxAge: cookieMaxAge,
+  })
+}
+
+/** Clear the CSRF cookie on logout. */
+function clearCsrfCookie(c: any): void {
+  setCookie(c, 'csrf_token', '', {
+    httpOnly: false,
+    secure: false,
+    sameSite: 'Strict',
+    path: '/',
+    maxAge: 0,
+  })
+}
+
+const authRoutes = new Hono<{ Bindings: Bindings; Variables: Variables }>()
+
+// Login page (HTML form)
+authRoutes.get('/login', async (c) => {
+  const error = c.req.query('error')
+  const message = c.req.query('message')
+  const redirect = c.req.query('redirect')
+
+  const pageData: LoginPageData = {
+    error: error || undefined,
+    message: message || undefined,
+    version: c.get('appVersion'),
+    redirect: redirect && redirect.startsWith('/') ? redirect : undefined,
+  }
+  
+  // Check if demo login plugin is active (set by demoLoginPlugin.onBoot at bootstrap)
+  const demoLoginActive = isDemoModeActive()
+  
+  return c.html(renderLoginPage(pageData, demoLoginActive))
+})
+
+// Registration page (HTML form)
+authRoutes.get('/register', async (c) => {
+  const db = c.env.DB
+
+  // Check if this is the first user (bootstrap scenario) - always allow
+  const isFirstUser = await isFirstUserRegistration(db)
+
+  // If not first user, check if registration is enabled
+  if (!isFirstUser) {
+    const registrationEnabled = await isRegistrationEnabled(db)
+    if (!registrationEnabled) {
+      return c.redirect('/auth/login?error=Registration is currently disabled')
+    }
+  }
+
+  const error = c.req.query('error')
+
+  const pageData: RegisterPageData = {
+    error: error || undefined
+  }
+
+  return c.html(renderRegisterPage(pageData))
+})
+
+// Login schema
+const loginSchema = z.object({
+  email: z.string().email('Valid email is required'),
+  password: z.string().min(1, 'Password is required')
+})
+
+// Register new user
+authRoutes.post('/register',
+  rateLimit({ max: 30, windowMs: 60 * 1000, keyPrefix: 'register' }),
+  async (c) => {
+    try {
+      const db = c.env.DB
+
+      // Check if this is the first user (bootstrap scenario) - always allow
+      const isFirstUser = await isFirstUserRegistration(db)
+
+      // If not first user, check if registration is enabled
+      if (!isFirstUser) {
+        const registrationEnabled = await isRegistrationEnabled(db)
+        if (!registrationEnabled) {
+          return c.json({ error: 'Registration is currently disabled' }, 403)
+        }
+      }
+
+      // Parse JSON with error handling
+      let requestData
+      try {
+        requestData = await c.req.json()
+      } catch (parseError) {
+        return c.json({ error: 'Invalid JSON in request body' }, 400)
+      }
+
+      // Build and validate using dynamic schema
+      const validationSchema = await authValidationService.buildRegistrationSchema(db)
+
+      let validatedData: RegistrationData
+      try {
+        validatedData = await validationSchema.parseAsync(requestData)
+      } catch (validationError: any) {
+        return c.json({
+          error: 'Validation failed',
+          details: validationError.issues?.map((e: any) => e.message) || [validationError.message || 'Invalid request data']
+        }, 400)
+      }
+
+      // Extract fields with defaults for optional ones
+      const email = validatedData.email
+      const password = validatedData.password
+      const firstName = validatedData.firstName || authValidationService.generateDefaultValue('firstName', validatedData)
+      const lastName = validatedData.lastName || authValidationService.generateDefaultValue('lastName', validatedData)
+
+      // Normalize email to lowercase
+      const normalizedEmail = email.toLowerCase()
+
+      // Check if user already exists
+      const existingUser = await db.prepare('SELECT id FROM auth_user WHERE email = ?')
+        .bind(normalizedEmail)
+        .first()
+
+      if (existingUser) {
+        return c.json({ error: 'User with this email already exists' }, 400)
+      }
+
+      // Hash password
+      const passwordHash = await AuthManager.hashPassword(password)
+
+      // Create user
+      const userId = crypto.randomUUID()
+      const now = new Date()
+      const nowSec = Math.floor(now.getTime() / 1000)
+
+      await db.batch([
+        db.prepare(`
+          INSERT INTO auth_user (id, email, first_name, last_name, password_hash, role, is_active, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(userId, normalizedEmail, firstName, lastName, passwordHash, 'viewer', 1, now.getTime(), now.getTime()),
+        // Better Auth sign-in/email requires an auth_account credential row — create it alongside auth_user
+        db.prepare(`INSERT OR IGNORE INTO auth_account (id, user_id, account_id, provider_id, password, created_at, updated_at)
+          VALUES (?, ?, ?, 'credential', ?, ?, ?)`)
+          .bind(`cred-${userId}`, userId, userId, passwordHash, nowSec, nowSec),
+      ])
+      
+      // Save custom profile fields if configured
+      const profileConfig = getUserProfileConfig()
+      if (profileConfig) {
+        const regFields = getRegistrationFields()
+        if (regFields.length > 0) {
+          const customData: Record<string, any> = { ...getProfileFieldDefaults() }
+          for (const field of regFields) {
+            if (requestData[field.name] !== undefined) {
+              customData[field.name] = requestData[field.name]
+            }
+          }
+          const sanitized = sanitizeCustomData(customData, profileConfig)
+          await saveCustomData(db, userId, sanitized)
+        }
+      }
+
+      // Fire auth:registration:completed (fire-and-forget — does not block the response)
+      dispatchHookEvent(
+        c,
+        'auth:registration:completed',
+        { user: { id: userId, email: normalizedEmail, role: 'viewer' } },
+        'fire-and-forget'
+      )
+
+      // Generate JWT token
+      const tokenTtl = await getJwtExpirySecondsFromDb(c.env.DB, c.env)
+      const token = await AuthManager.generateToken(userId, normalizedEmail, 'viewer', c.env.JWT_SECRET, tokenTtl)
+
+      // Set HTTP-only cookie
+      setCookie(c, 'auth_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'Strict',
+        maxAge: tokenTtl
+      })
+
+      // Set CSRF cookie for browser sessions
+      await setCsrfCookie(c)
+
+      return c.json({
+        user: {
+          id: userId,
+          email: normalizedEmail,
+          firstName,
+          lastName,
+          role: 'viewer'
+        },
+        token
+      }, 201)
+    } catch (error) {
+      console.error('Registration error:', error)
+      // Return validation errors as 400, other errors as 500
+      if (error instanceof Error && error.message.includes('validation')) {
+        return c.json({ error: error.message }, 400)
+      }
+      return c.json({
+        error: 'Registration failed',
+        details: error instanceof Error ? error.message : String(error)
+      }, 500)
+    }
+  }
+)
+
+// Login user — delegates to Better Auth sign-in/email, returns JSON with session cookie.
+authRoutes.post('/login',
+  rateLimit({ max: 30, windowMs: 60 * 1000, keyPrefix: 'login' }),
+  async (c) => {
+    try {
+      const body = await c.req.json()
+      const validation = loginSchema.safeParse(body)
+      if (!validation.success) {
+        return c.json({ error: 'Validation failed', details: validation.error.issues }, 400)
+      }
+      const { email, password } = validation.data
+      const normalizedEmail = email.toLowerCase()
+
+      const { createAuth } = await import('../auth/config')
+      const auth = createAuth(c.env, undefined, new URL(c.req.url).origin)
+
+      const baReq = new Request(new URL('/auth/sign-in/email', c.req.url).href, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Origin': new URL(c.req.url).origin },
+        body: JSON.stringify({ email: normalizedEmail, password }),
+      })
+      const baRes = await auth.handler(baReq)
+
+      if (!baRes.ok) {
+        return c.json({ error: 'Invalid email or password' }, 401)
+      }
+
+      // Forward BA session cookie(s) to client.
+      // Use c.header() so headers survive into the c.json() response (c.res.headers mutations are discarded).
+      // Prefer getSetCookie() — headers.get('set-cookie') joins multiple cookies with ',' which corrupts them.
+      if ((baRes.headers as any).getSetCookie) {
+        for (const sc of (baRes.headers as any).getSetCookie()) {
+          c.header('Set-Cookie', sc, { append: true })
+        }
+      } else {
+        const rawSetCookie = baRes.headers.get('set-cookie')
+        if (rawSetCookie) {
+          c.header('Set-Cookie', rawSetCookie, { append: true })
+        }
+      }
+
+      await setCsrfCookie(c)
+
+      const baBody = await baRes.json() as any
+
+      // Second factor pending. Better Auth answers a 2FA challenge with HTTP **200** and a body
+      // of `{twoFactorRedirect:true}` — no `user`, no `token`, and it deletes the session it had
+      // just created. So `baRes.ok` above is TRUE and this is NOT a credential failure.
+      //
+      // This must be handled before the JWT mint below. `baBody.user` is absent here, so
+      // `generateToken(undefined, undefined, 'viewer', …)` would sign a token for a
+      // non-existent principal, set it as `auth_token`, and hand it back as `token` — and
+      // app.ts's Bearer-JWT fallback would then populate `c.get('user')` with
+      // `{userId: undefined}`, which `requireAuth()` accepts because the object is truthy.
+      //
+      // 200, not 401: the credentials were correct, and a 401 would teach API clients to
+      // re-prompt for the password. BA's signed challenge cookie has already been forwarded onto
+      // this response by the Set-Cookie loop above, which is what /auth/two-factor/verify-totp
+      // needs in order to resolve the challenge.
+      if (baBody?.twoFactorRedirect === true) {
+        return c.json({
+          twoFactorRequired: true,
+          // BA only ever reports 'totp'/'otp' here — never 'backup_code'. A client must offer
+          // backup-code entry unconditionally rather than keying off this list.
+          twoFactorMethods: baBody.twoFactorMethods ?? [],
+          redirectTo: '/auth/two-factor',
+        })
+      }
+
+      const user = baBody.user ?? {}
+
+      // Mint a JWT so API callers can use Bearer token auth (same as /register)
+      const tokenTtl = await getJwtExpirySecondsFromDb(c.env.DB, c.env)
+      const token = await AuthManager.generateToken(
+        user.id,
+        user.email,
+        user.role ?? 'viewer',
+        c.env.JWT_SECRET,
+        tokenTtl
+      )
+
+      setCookie(c, 'auth_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'Strict',
+        maxAge: tokenTtl,
+      })
+
+      if (normalizedEmail === DEMO_EMAIL) {
+        c.executionCtx?.waitUntil(trackDemoLogin(c.env.CACHE_KV))
+      }
+
+      return c.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.name?.split(' ')[0] ?? '',
+          lastName: user.name?.split(' ').slice(1).join(' ') ?? '',
+          role: user.role ?? 'viewer',
+        },
+        token,
+      })
+    } catch (error) {
+      console.error('Login error:', error)
+      return c.json({ error: 'Login failed' }, 500)
+    }
+})
+
+// Logout user (both GET and POST for convenience)
+authRoutes.post('/logout', async (c) => {
+  // Delegate to BA to invalidate the session server-side, then clear cookies.
+  try {
+    const { createAuth } = await import('../auth/config')
+    const auth = createAuth(c.env, undefined, new URL(c.req.url).origin)
+    const baReq = new Request(new URL('/auth/sign-out', c.req.url).href, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Origin': new URL(c.req.url).origin, 'Cookie': c.req.header('Cookie') || '' },
+      body: JSON.stringify({}),
+    })
+    await auth.handler(baReq)
+  } catch { /* non-fatal — clear cookie regardless */ }
+
+  const isSecure = new URL(c.req.url).protocol === 'https:'
+  setCookie(c, 'better-auth.session_token', '', { httpOnly: true, sameSite: 'Lax', path: '/', maxAge: 0, secure: isSecure })
+  clearCsrfCookie(c)
+  return c.json({ message: 'Logged out successfully' })
+})
+
+authRoutes.get('/logout', async (c) => {
+  // Delegate to BA to invalidate the session server-side, then clear cookies.
+  try {
+    const { createAuth } = await import('../auth/config')
+    const auth = createAuth(c.env, undefined, new URL(c.req.url).origin)
+    const baReq = new Request(new URL('/auth/sign-out', c.req.url).href, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Origin': new URL(c.req.url).origin, 'Cookie': c.req.header('Cookie') || '' },
+      body: JSON.stringify({}),
+    })
+    await auth.handler(baReq)
+  } catch { /* non-fatal */ }
+
+  const isSecure = new URL(c.req.url).protocol === 'https:'
+  setCookie(c, 'better-auth.session_token', '', { httpOnly: true, sameSite: 'Lax', path: '/', maxAge: 0, secure: isSecure })
+  clearCsrfCookie(c)
+  return c.redirect('/auth/login?message=You have been logged out successfully')
+})
+
+// Get current user
+authRoutes.get('/me', requireAuth(), async (c) => {
+  try {
+    // This would need the auth middleware applied
+    const user = c.get('user')
+    
+    if (!user) {
+      return c.json({ error: 'Not authenticated' }, 401)
+    }
+    
+    const db = c.env.DB
+    const userData = await db.prepare('SELECT id, email, first_name, last_name, role, created_at FROM auth_user WHERE id = ?')
+      .bind(user.userId)
+      .first() as Record<string, any> | null
+
+    if (!userData) {
+      return c.json({ error: 'User not found' }, 404)
+    }
+
+    const customData = await getCustomData(db, user.userId)
+    return c.json({ user: { ...userData, ...customData } })
+  } catch (error) {
+    console.error('Get user error:', error)
+    return c.json({ error: 'Failed to get user' }, 500)
+  }
+})
+
+// Refresh token (sliding session)
+//
+// Accepts a valid JWT — or one that has expired within the grace window
+// (`JWT_REFRESH_GRACE_SECONDS`, default 7 days) — and issues a fresh JWT
+// with a new `exp`. This lets a long-lived session cookie keep a user
+// logged in across JWT expirations without forcing a full re-login.
+//
+// Security: the caller must still present a valid-signature token that
+// recently belonged to an active user. Fully forged or long-expired tokens
+// are rejected.
+authRoutes.post('/refresh',
+  rateLimit({ max: 60, windowMs: 60 * 1000, keyPrefix: 'refresh' }),
+  async (c) => {
+  try {
+    // Accept token from Authorization header or cookie
+    let token = c.req.header('Authorization')?.replace('Bearer ', '')
+    if (!token) token = getCookie(c, 'auth_token')
+
+    if (!token) {
+      return c.json({ error: 'Authentication required' }, 401)
+    }
+
+    const db = c.env.DB
+    const grace = await getJwtRefreshGraceSecondsFromDb(db, c.env)
+
+    const payload = await AuthManager.verifyToken(token, c.env.JWT_SECRET, grace)
+    if (!payload) {
+      return c.json({ error: 'Invalid or expired token' }, 401)
+    }
+
+    // Re-validate the user is still active, and pick up any role changes.
+    const row = await db.prepare('SELECT id, email, role, is_active FROM auth_user WHERE id = ?')
+      .bind(payload.userId)
+      .first() as any
+
+    if (!row || !row.is_active) {
+      return c.json({ error: 'User is not active' }, 401)
+    }
+
+    // Generate new token with a fresh exp
+    const tokenTtl = await getJwtExpirySecondsFromDb(db, c.env)
+    const newToken = await AuthManager.generateToken(row.id, row.email, row.role, c.env.JWT_SECRET, tokenTtl)
+
+    // Set new cookie
+    setCookie(c, 'auth_token', newToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Strict',
+      maxAge: tokenTtl
+    })
+
+    // Set CSRF cookie for browser sessions
+    await setCsrfCookie(c)
+
+    return c.json({
+      token: newToken,
+      expiresIn: tokenTtl
+    })
+  } catch (error) {
+    console.error('Token refresh error:', error)
+    return c.json({ error: 'Token refresh failed' }, 500)
+  }
+})
+
+// Form-based registration handler (for HTML forms)
+authRoutes.post('/register/form',
+  rateLimit({ max: 30, windowMs: 60 * 1000, keyPrefix: 'register' }),
+  async (c) => {
+  try {
+    const db = c.env.DB
+
+    // Check if this is the first user (bootstrap scenario) - always allow
+    const isFirstUser = await isFirstUserRegistration(db)
+
+    // If not first user, check if registration is enabled
+    if (!isFirstUser) {
+      const registrationEnabled = await isRegistrationEnabled(db)
+      if (!registrationEnabled) {
+        return c.html(html`
+          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            Registration is currently disabled. Please contact an administrator.
+          </div>
+        `)
+      }
+    }
+
+    const formData = await c.req.formData()
+
+    // Extract form data
+    const requestData = {
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
+      firstName: formData.get('firstName') as string,
+      lastName: formData.get('lastName') as string,
+    }
+
+    // Normalize email to lowercase
+    const normalizedEmail = requestData.email?.toLowerCase()
+    requestData.email = normalizedEmail
+
+    // Build and validate using dynamic schema
+    const validationSchema = await authValidationService.buildRegistrationSchema(db)
+    const validation = await validationSchema.safeParseAsync(requestData)
+
+    if (!validation.success) {
+      return c.html(html`
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          ${validation.error.issues.map((err: { message: string }) => err.message).join(', ')}
+        </div>
+      `)
+    }
+
+      const validatedData: RegistrationData = validation.data
+
+    // Extract fields with defaults for optional ones
+    const password = validatedData.password
+    const firstName = validatedData.firstName || authValidationService.generateDefaultValue('firstName', validatedData)
+    const lastName = validatedData.lastName || authValidationService.generateDefaultValue('lastName', validatedData)
+
+    // Check if user already exists
+    const existingUser = await db.prepare('SELECT id FROM auth_user WHERE email = ?')
+      .bind(normalizedEmail)
+      .first()
+
+    if (existingUser) {
+      return c.html(html`
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          User with this email already exists
+        </div>
+      `)
+    }
+
+    // Hash password
+    const passwordHash = await AuthManager.hashPassword(password)
+
+    // Determine role: first user gets admin, others get viewer
+    const role = isFirstUser ? 'admin' : 'viewer'
+
+    // Create user
+    const userId = crypto.randomUUID()
+    const now = new Date()
+
+    await db.prepare(`
+      INSERT INTO auth_user (id, email, first_name, last_name, password_hash, role, is_active, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      userId,
+      normalizedEmail,
+      firstName,
+      lastName,
+      passwordHash,
+      role,
+      1, // is_active
+      now.getTime(),
+      now.getTime()
+    ).run()
+
+    // Save custom profile fields if configured
+    const profileConfig = getUserProfileConfig()
+    if (profileConfig) {
+      const regFields = getRegistrationFields()
+      if (regFields.length > 0) {
+        const customData: Record<string, any> = { ...getProfileFieldDefaults() }
+        for (const field of regFields) {
+          const raw = formData.get(field.name)?.toString()
+          if (raw !== undefined && raw !== null) {
+            customData[field.name] = raw
+          }
+        }
+        const sanitized = sanitizeCustomData(customData, profileConfig)
+        await saveCustomData(db, userId, sanitized)
+      }
+    }
+
+    // Assign RBAC role so the new user passes requireRbac('portal', 'access')
+    const rbacService = new RbacService(db)
+    await rbacService.addUserRoleByName(userId, role)
+
+    // Fire auth:registration:completed (fire-and-forget — does not block the response)
+    dispatchHookEvent(
+      c,
+      'auth:registration:completed',
+      { user: { id: userId, email: normalizedEmail, role } },
+      'fire-and-forget'
+    )
+
+    // Generate JWT token
+    const tokenTtl = await getJwtExpirySecondsFromDb(c.env.DB, c.env)
+    const token = await AuthManager.generateToken(userId, normalizedEmail, role, c.env.JWT_SECRET, tokenTtl)
+
+    // Set HTTP-only cookie
+    setCookie(c, 'auth_token', token, {
+      httpOnly: true,
+      secure: false, // Set to true in production with HTTPS
+      sameSite: 'Strict',
+      maxAge: tokenTtl
+    })
+
+    // Set CSRF cookie for browser sessions
+    await setCsrfCookie(c)
+
+    // Redirect based on role
+    const redirectUrl = '/admin/content'
+
+    return c.html(html`
+      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+        Account created successfully! Redirecting...
+        <script>
+          setTimeout(() => {
+            window.location.href = '${redirectUrl}';
+          }, 2000);
+        </script>
+      </div>
+    `)
+  } catch (error) {
+    console.error('Registration error:', error)
+    return c.html(html`
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        Registration failed. Please try again.
+      </div>
+    `)
+  }
+})
+
+// Form-based login handler (for HTML forms)
+authRoutes.post('/login/form',
+  rateLimit({ max: 30, windowMs: 60 * 1000, keyPrefix: 'login' }),
+  async (c) => {
+  try {
+    const formData = await c.req.formData()
+    const email = (formData.get('email') as string || '').toLowerCase()
+    const password = formData.get('password') as string
+
+    const validation = loginSchema.safeParse({ email, password })
+    if (!validation.success) {
+      return c.html(html`
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          ${validation.error.issues.map((err: { message: string }) => err.message).join(', ')}
+        </div>
+      `)
+    }
+
+    // Delegate to Better Auth — call sign-in/email, get session token, set BA cookie.
+    const { createAuth } = await import('../auth/config')
+    const auth = createAuth(c.env, undefined, new URL(c.req.url).origin)
+
+    const baReq = new Request(new URL('/auth/sign-in/email', c.req.url).href, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Origin': new URL(c.req.url).origin },
+      body: JSON.stringify({ email, password }),
+    })
+    const baRes = await auth.handler(baReq)
+
+    if (!baRes.ok) {
+      return c.html(html`
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          Invalid email or password
+        </div>
+      `)
+    }
+
+    // Forward BA's Set-Cookie header(s) to the browser.
+    // BA sets better-auth.session_token as token.signature (signed). Using the
+    // raw JSON .token field would break session lookup — must use the full cookie value.
+    // Use c.header() (not c.res.headers.append) — Hono's c.html() creates a new Response
+    // from c's internal header store; mutations to c.res.headers are discarded.
+    // Prefer getSetCookie() — headers.get('set-cookie') joins multiple cookies with ',' which corrupts them.
+    if ((baRes.headers as any).getSetCookie) {
+      for (const sc of (baRes.headers as any).getSetCookie()) {
+        c.header('Set-Cookie', sc, { append: true })
+      }
+    } else {
+      const rawSetCookie = baRes.headers.get('set-cookie')
+      if (rawSetCookie) {
+        c.header('Set-Cookie', rawSetCookie, { append: true })
+      }
+    }
+
+    await setCsrfCookie(c)
+
+    // Second factor pending — see the sibling branch in POST /auth/login for the full note.
+    // The password was CORRECT and `baRes.ok` is true, so without this branch the handler
+    // reports "Login successful! Redirecting…" and sends the browser to /admin/content with no
+    // session, which bounces straight back to the login page. BA's signed challenge cookie is
+    // already on this response; send the browser to the challenge page instead.
+    const baChallengeBody = (await baRes
+      .clone()
+      .json()
+      .catch(() => null)) as { twoFactorRedirect?: boolean } | null
+    if (baChallengeBody?.twoFactorRedirect === true) {
+      const isHtmxChallenge = c.req.header('HX-Request') === 'true'
+      if (isHtmxChallenge) {
+        c.header('HX-Redirect', '/auth/two-factor')
+      }
+      return c.html(html`
+        <div id="form-response">
+          <p class="text-sm text-zinc-600 dark:text-zinc-300">Password accepted. Redirecting for two-step verification…</p>
+          <script>
+            window.location.href = '/auth/two-factor';
+          </script>
+        </div>
+      `)
+    }
+
+    if (email === DEMO_EMAIL) {
+      c.executionCtx?.waitUntil(trackDemoLogin(c.env.CACHE_KV))
+    }
+
+    const rawRedirect = c.req.query('redirect')
+    const redirectUrl = rawRedirect && rawRedirect.startsWith('/') ? rawRedirect : '/admin/content'
+
+    // For HTMX requests: HX-Redirect triggers an immediate client-side navigation.
+    // For native form submissions (HTMX not loaded): the <script> setTimeout handles it.
+    const isHtmx = c.req.header('HX-Request') === 'true'
+    if (isHtmx) {
+      c.header('HX-Redirect', redirectUrl)
+      return c.html(html`<div id="form-response"><p class="text-sm text-green-600">Login successful! Redirecting...</p></div>`)
+    }
+
+    return c.html(html`
+      <div id="form-response">
+        <div class="rounded-lg bg-green-100 dark:bg-lime-500/10 p-4 ring-1 ring-green-400 dark:ring-lime-500/20">
+          <div class="flex items-start gap-x-3">
+            <svg class="h-5 w-5 text-green-600 dark:text-lime-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-green-700 dark:text-lime-300">Login successful! Redirecting...</p>
+            </div>
+          </div>
+          <script>
+            setTimeout(() => { window.location.href = '${redirectUrl}'; }, 500);
+          </script>
+        </div>
+      </div>
+    `)
+  } catch (error) {
+    console.error('Login error:', error)
+    return c.html(html`
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        Login failed. Please try again.
+      </div>
+    `)
+  }
+})
+
+// Test seeding endpoint (only for development/testing)
+authRoutes.post('/seed-admin',
+  rateLimit({ max: 10, windowMs: 60 * 1000, keyPrefix: 'seed-admin' }),
+  async (c) => {
+  try {
+    const db = c.env.DB
+    // Ensure document_types FK targets exist before RBAC seed — D1 enforces the FK
+    // and bootstrap's Promise.all can race. Also covers KV fast-path deployments that
+    // skip ensureSystemRbacSeed entirely.
+    await bootstrapDocumentTypes(db)
+    const rbac = new RbacService(db)
+    await rbac.ensureSystemRbacSeed()
+    const results: Array<{ email: string; status: string }> = []
+
+    const upsertSeedUser = async (opts: {
+      id: string
+      email: string
+      name: string
+      firstName: string
+      lastName: string
+      role: string
+      rbacRole: string
+      password: string
+    }) => {
+      const passwordHash = await AuthManager.hashPassword(opts.password)
+      const nowMs = Date.now()
+      const nowSec = Math.floor(nowMs / 1000)
+      const existing = await db.prepare('SELECT id FROM auth_user WHERE email = ?').bind(opts.email).first()
+      if (existing) {
+        await db.prepare('UPDATE auth_user SET updated_at = ? WHERE id = ?').bind(nowMs, existing.id).run()
+        const existingCred = await db.prepare(
+          `SELECT id FROM auth_account WHERE user_id = ? AND provider_id = 'credential'`
+        ).bind(existing.id).first()
+        if (existingCred) {
+          await db.prepare(`UPDATE auth_account SET password = ?, updated_at = ? WHERE id = ?`)
+            .bind(passwordHash, nowSec, existingCred.id).run()
+        } else {
+          await db.prepare(`INSERT INTO auth_account (id, user_id, account_id, provider_id, password, created_at, updated_at)
+            VALUES (?, ?, ?, 'credential', ?, ?, ?)`)
+            .bind(`cred-${existing.id}`, existing.id, existing.id, passwordHash, nowSec, nowSec).run()
+        }
+        await rbac.addUserRoleByName(String(existing.id), opts.rbacRole)
+        return 'updated'
+      }
+      await db.batch([
+        db.prepare(`INSERT INTO auth_user (id, name, email, email_verified, first_name, last_name, role, is_active, created_at, updated_at)
+          VALUES (?, ?, ?, 1, ?, ?, ?, 1, ?, ?)`)
+          .bind(opts.id, opts.name, opts.email, opts.firstName, opts.lastName, opts.role, nowMs, nowMs),
+        db.prepare(`INSERT INTO auth_account (id, user_id, account_id, provider_id, password, created_at, updated_at)
+          VALUES (?, ?, ?, 'credential', ?, ?, ?)`)
+          .bind(`cred-${opts.id}`, opts.id, opts.id, passwordHash, nowSec, nowSec),
+      ])
+      await rbac.addUserRoleByName(opts.id, opts.rbacRole)
+      return 'created'
+    }
+
+    results.push({
+      email: 'admin@sonicjs.com',
+      status: await upsertSeedUser({
+        id: 'admin-user-id',
+        email: 'admin@sonicjs.com',
+        name: 'Admin User',
+        firstName: 'Admin',
+        lastName: 'User',
+        role: 'admin',
+        rbacRole: 'admin',
+        password: 'sonicjs!',
+      }),
+    })
+
+    // Temporary editor user for testing
+    results.push({
+      email: 'e@e.com',
+      status: await upsertSeedUser({
+        id: 'editor-user-eddie',
+        email: 'e@e.com',
+        name: 'Eddie McEditor',
+        firstName: 'Eddie',
+        lastName: 'McEditor',
+        role: 'editor',
+        rbacRole: 'editor',
+        password: '123123123',
+      }),
+    })
+
+    return c.json({ message: 'Seed complete', users: results })
+  } catch (error) {
+    console.error('Seed admin error:', error)
+    return c.json({ error: 'Failed to seed users', details: error instanceof Error ? error.message : String(error) }, 500)
+  }
+})
+
+
+// Accept invitation page
+authRoutes.get('/accept-invitation', async (c) => {
+  try {
+    const token = c.req.query('token')
+    
+    if (!token) {
+      return c.html(`
+        <html>
+          <head><title>Invalid Invitation</title></head>
+          <body>
+            <h1>Invalid Invitation</h1>
+            <p>The invitation link is invalid or has expired.</p>
+            <a href="/auth/login">Go to Login</a>
+          </body>
+        </html>
+      `)
+    }
+
+    const db = c.env.DB
+    
+    // Check if invitation token is valid
+    const userStmt = db.prepare(`
+      SELECT id, email, first_name, last_name, role, invited_at
+      FROM auth_user 
+      WHERE invitation_token = ? AND is_active = 0
+    `)
+    const invitedUser = await userStmt.bind(token).first() as any
+
+    if (!invitedUser) {
+      return c.html(`
+        <html>
+          <head><title>Invalid Invitation</title></head>
+          <body>
+            <h1>Invalid Invitation</h1>
+            <p>The invitation link is invalid or has expired.</p>
+            <a href="/auth/login">Go to Login</a>
+          </body>
+        </html>
+      `)
+    }
+
+    // Check if invitation is expired (7 days)
+    const invitationAge = Date.now() - invitedUser.invited_at
+    const maxAge = 7 * 24 * 60 * 60 * 1000 // 7 days
+    
+    if (invitationAge > maxAge) {
+      return c.html(`
+        <html>
+          <head><title>Invitation Expired</title></head>
+          <body>
+            <h1>Invitation Expired</h1>
+            <p>This invitation has expired. Please contact your administrator for a new invitation.</p>
+            <a href="/auth/login">Go to Login</a>
+          </body>
+        </html>
+      `)
+    }
+
+    // Show invitation acceptance form
+    return c.html(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Accept Invitation - SonicJS AI</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+          body {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+          }
+        </style>
+      </head>
+      <body class="bg-gray-900 text-white">
+        <div class="min-h-screen flex items-center justify-center px-4">
+          <div class="max-w-md w-full space-y-8">
+            <div class="text-center">
+              <div class="mx-auto w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+              </div>
+              <h2 class="text-3xl font-bold">Accept Invitation</h2>
+              <p class="mt-2 text-gray-400">Complete your account setup</p>
+              <p class="mt-4 text-sm">
+                You've been invited as <strong>${invitedUser.first_name} ${invitedUser.last_name}</strong><br>
+                <span class="text-gray-400">${invitedUser.email}</span><br>
+                <span class="text-blue-400 capitalize">${invitedUser.role}</span>
+              </p>
+            </div>
+
+            <form method="POST" action="/auth/accept-invitation" class="mt-8 space-y-6">
+              <input type="hidden" name="token" value="${token}" />
+
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                <input 
+                  type="password" 
+                  name="password" 
+                  required
+                  minlength="8"
+                  class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
+                  placeholder="Enter your password"
+                >
+                <p class="text-xs text-gray-400 mt-1">Password must be at least 8 characters long</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+                <input 
+                  type="password" 
+                  name="confirm_password" 
+                  required
+                  minlength="8"
+                  class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
+                  placeholder="Confirm your password"
+                >
+              </div>
+
+              <button 
+                type="submit"
+                class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all"
+              >
+                Accept Invitation & Create Account
+              </button>
+            </form>
+          </div>
+        </div>
+      </body>
+      </html>
+    `)
+
+  } catch (error) {
+    console.error('Accept invitation page error:', error)
+    return c.html(`
+      <html>
+        <head><title>Error</title></head>
+        <body>
+          <h1>Error</h1>
+          <p>An error occurred while processing your invitation.</p>
+          <a href="/auth/login">Go to Login</a>
+        </body>
+      </html>
+    `)
+  }
+})
+
+// Process invitation acceptance
+authRoutes.post('/accept-invitation', async (c) => {
+  try {
+    const formData = await c.req.formData()
+    const token = formData.get('token')?.toString()
+    const password = formData.get('password')?.toString()
+    const confirmPassword = formData.get('confirm_password')?.toString()
+
+    if (!token || !password || !confirmPassword) {
+      return c.json({ error: 'All fields are required' }, 400)
+    }
+
+    if (password !== confirmPassword) {
+      return c.json({ error: 'Passwords do not match' }, 400)
+    }
+
+    if (password.length < 8) {
+      return c.json({ error: 'Password must be at least 8 characters long' }, 400)
+    }
+
+    const db = c.env.DB
+
+    // Check if invitation token is valid
+    const userStmt = db.prepare(`
+      SELECT id, email, first_name, last_name, role, invited_at
+      FROM auth_user 
+      WHERE invitation_token = ? AND is_active = 0
+    `)
+    const invitedUser = await userStmt.bind(token).first() as any
+
+    if (!invitedUser) {
+      return c.json({ error: 'Invalid or expired invitation' }, 400)
+    }
+
+    // Check if invitation is expired (7 days)
+    const invitationAge = Date.now() - invitedUser.invited_at
+    const maxAge = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+    if (invitationAge > maxAge) {
+      return c.json({ error: 'Invitation has expired' }, 400)
+    }
+
+    // Hash password
+    const passwordHash = await AuthManager.hashPassword(password)
+
+    // Activate user account
+    const updateStmt = db.prepare(`
+      UPDATE auth_user SET
+        password_hash = ?,
+        is_active = 1,
+        email_verified = 1,
+        invitation_token = NULL,
+        accepted_invitation_at = ?,
+        updated_at = ?
+      WHERE id = ?
+    `)
+
+    await updateStmt.bind(
+      passwordHash,
+      Date.now(),
+      Date.now(),
+      invitedUser.id
+    ).run()
+
+    // Generate JWT token for auto-login
+    const tokenTtl = await getJwtExpirySecondsFromDb(c.env.DB, c.env)
+    const authToken = await AuthManager.generateToken(invitedUser.id, invitedUser.email, invitedUser.role, c.env.JWT_SECRET, tokenTtl)
+
+    // Set HTTP-only cookie
+    setCookie(c, 'auth_token', authToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Strict',
+      maxAge: tokenTtl
+    })
+
+    // Set CSRF cookie for browser sessions
+    await setCsrfCookie(c)
+
+    // Log the activity (TODO: implement activity logging)
+    // Activity logging is deferred until utils/log-activity is implemented
+
+    // Redirect to admin dashboard
+    return c.redirect('/admin/content')
+
+  } catch (error) {
+    console.error('Accept invitation error:', error)
+    return c.json({ error: 'Failed to accept invitation' }, 500)
+  }
+})
+
+// Request password reset
+authRoutes.post('/request-password-reset',
+  rateLimit({ max: 3, windowMs: 15 * 60 * 1000, keyPrefix: 'password-reset' }),
+  async (c) => {
+  try {
+    const formData = await c.req.formData()
+    const email = formData.get('email')?.toString()?.trim()?.toLowerCase()
+
+    if (!email) {
+      return c.json({ error: 'Email is required' }, 400)
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return c.json({ error: 'Please enter a valid email address' }, 400)
+    }
+
+    const db = c.env.DB
+
+    // Check if user exists and is active
+    const userStmt = db.prepare(`
+      SELECT id, email, first_name, last_name FROM auth_user 
+      WHERE email = ? AND is_active = 1
+    `)
+    const user = await userStmt.bind(email).first() as any
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return c.json({
+        success: true,
+        message: 'If an account with this email exists, a password reset link has been sent.'
+      })
+    }
+
+    // Generate password reset token (expires in 1 hour)
+    const resetToken = crypto.randomUUID()
+    const resetExpires = Date.now() + (60 * 60 * 1000) // 1 hour
+
+    // Update user with reset token
+    const updateStmt = db.prepare(`
+      UPDATE auth_user SET 
+        password_reset_token = ?,
+        password_reset_expires = ?,
+        updated_at = ?
+      WHERE id = ?
+    `)
+
+    await updateStmt.bind(
+      resetToken,
+      resetExpires,
+      Date.now(),
+      user.id
+    ).run()
+
+    // Fire auth:password-reset:requested so plugins can audit or send custom emails.
+    // The resetToken is included in the payload for plugins that implement their own
+    // delivery — it MUST NOT be returned in the API response.
+    dispatchHookEvent(
+      c,
+      'auth:password-reset:requested',
+      { user: { id: user.id, email: user.email }, resetToken },
+      'fire-and-forget'
+    )
+
+    // Send the reset link via email. The link is NEVER returned in the API
+    // response — doing so previously leaked a valid reset token to any caller.
+    const resetLink = `${c.req.header('origin') || 'http://localhost:8787'}/auth/reset-password?token=${resetToken}`
+
+    if (hasEmailService()) {
+      try {
+        await getEmailService().send({
+          to: user.email,
+          subject: 'Reset your password',
+          flow: 'password-reset',
+          html: renderPasswordResetEmail(resetLink, user.first_name),
+          text: `Reset your password using this link (valid for 1 hour): ${resetLink}`,
+        })
+      } catch (err) {
+        // Delivery failure must not change the response (no enumeration signal).
+        console.error('Failed to send password reset email:', err)
+      }
+    } else {
+      console.warn('[auth] EmailService not initialized; password reset email not sent')
+    }
+
+    return c.json({
+      success: true,
+      message: 'If an account with this email exists, a password reset link has been sent.'
+    })
+
+  } catch (error) {
+    console.error('Password reset request error:', error)
+    return c.json({ error: 'Failed to process password reset request' }, 500)
+  }
+})
+
+// Show password reset form
+authRoutes.get('/reset-password', async (c) => {
+  try {
+    const token = c.req.query('token')
+    
+    if (!token) {
+      return c.html(`
+        <html>
+          <head><title>Invalid Reset Link</title></head>
+          <body>
+            <h1>Invalid Reset Link</h1>
+            <p>The password reset link is invalid or has expired.</p>
+            <a href="/auth/login">Go to Login</a>
+          </body>
+        </html>
+      `)
+    }
+
+    const db = c.env.DB
+    
+    // Check if reset token is valid and not expired
+    const userStmt = db.prepare(`
+      SELECT id, email, first_name, last_name, password_reset_expires
+      FROM auth_user 
+      WHERE password_reset_token = ? AND is_active = 1
+    `)
+    const user = await userStmt.bind(token).first() as any
+
+    if (!user) {
+      return c.html(`
+        <html>
+          <head><title>Invalid Reset Link</title></head>
+          <body>
+            <h1>Invalid Reset Link</h1>
+            <p>The password reset link is invalid or has already been used.</p>
+            <a href="/auth/login">Go to Login</a>
+          </body>
+        </html>
+      `)
+    }
+
+    // Check if token is expired
+    if (Date.now() > user.password_reset_expires) {
+      return c.html(`
+        <html>
+          <head><title>Reset Link Expired</title></head>
+          <body>
+            <h1>Reset Link Expired</h1>
+            <p>The password reset link has expired. Please request a new one.</p>
+            <a href="/auth/login">Go to Login</a>
+          </body>
+        </html>
+      `)
+    }
+
+    // Show password reset form
+    return c.html(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reset Password - SonicJS AI</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+          body {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+          }
+        </style>
+      </head>
+      <body class="bg-gray-900 text-white">
+        <div class="min-h-screen flex items-center justify-center px-4">
+          <div class="max-w-md w-full space-y-8">
+            <div class="text-center">
+              <div class="mx-auto w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3.586l4.293-4.293A6 6 0 0119 9z"/>
+                </svg>
+              </div>
+              <h2 class="text-3xl font-bold">Reset Password</h2>
+              <p class="mt-2 text-gray-400">Choose a new password for your account</p>
+              <p class="mt-4 text-sm">
+                Reset password for <strong>${user.first_name} ${user.last_name}</strong><br>
+                <span class="text-gray-400">${user.email}</span>
+              </p>
+            </div>
+
+            <form method="POST" action="/auth/reset-password" class="mt-8 space-y-6">
+              <input type="hidden" name="token" value="${token}" />
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+                <input 
+                  type="password" 
+                  name="password" 
+                  required
+                  minlength="8"
+                  class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
+                  placeholder="Enter your new password"
+                >
+                <p class="text-xs text-gray-400 mt-1">Password must be at least 8 characters long</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
+                <input 
+                  type="password" 
+                  name="confirm_password" 
+                  required
+                  minlength="8"
+                  class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
+                  placeholder="Confirm your new password"
+                >
+              </div>
+
+              <button 
+                type="submit"
+                class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all"
+              >
+                Reset Password
+              </button>
+            </form>
+
+            <div class="text-center">
+              <a href="/auth/login" class="text-sm text-blue-400 hover:text-blue-300">
+                Back to Login
+              </a>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `)
+
+  } catch (error) {
+    console.error('Password reset page error:', error)
+    return c.html(`
+      <html>
+        <head><title>Error</title></head>
+        <body>
+          <h1>Error</h1>
+          <p>An error occurred while processing your password reset.</p>
+          <a href="/auth/login">Go to Login</a>
+        </body>
+      </html>
+    `)
+  }
+})
+
+// Process password reset
+authRoutes.post('/reset-password', async (c) => {
+  try {
+    const formData = await c.req.formData()
+    const token = formData.get('token')?.toString()
+    const password = formData.get('password')?.toString()
+    const confirmPassword = formData.get('confirm_password')?.toString()
+
+    if (!token || !password || !confirmPassword) {
+      return c.json({ error: 'All fields are required' }, 400)
+    }
+
+    if (password !== confirmPassword) {
+      return c.json({ error: 'Passwords do not match' }, 400)
+    }
+
+    if (password.length < 8) {
+      return c.json({ error: 'Password must be at least 8 characters long' }, 400)
+    }
+
+    const db = c.env.DB
+
+    // Check if reset token is valid and not expired
+    const userStmt = db.prepare(`
+      SELECT id, email, password_hash, password_reset_expires
+      FROM auth_user
+      WHERE password_reset_token = ? AND is_active = 1
+    `)
+    const user = await userStmt.bind(token).first() as any
+
+    if (!user) {
+      return c.json({ error: 'Invalid or expired reset token' }, 400)
+    }
+
+    // Check if token is expired
+    if (Date.now() > user.password_reset_expires) {
+      return c.json({ error: 'Reset token has expired' }, 400)
+    }
+
+    // Hash new password
+    const newPasswordHash = await AuthManager.hashPassword(password)
+
+    // Store old password in history (skip if table doesn't exist)
+    try {
+      const historyStmt = db.prepare(`
+        INSERT INTO auth_password_history (id, user_id, password_hash, created_at)
+        VALUES (?, ?, ?, ?)
+      `)
+      await historyStmt.bind(
+        crypto.randomUUID(),
+        user.id,
+        user.password_hash,
+        Date.now()
+      ).run()
+    } catch (historyError) {
+      // Password history table may not exist yet
+      console.warn('Could not store password history:', historyError)
+    }
+
+    // Update user password and clear reset token
+    const updateStmt = db.prepare(`
+      UPDATE auth_user SET
+        password_hash = ?,
+        password_reset_token = NULL,
+        password_reset_expires = NULL,
+        updated_at = ?
+      WHERE id = ?
+    `)
+
+    await updateStmt.bind(
+      newPasswordHash,
+      Date.now(),
+      user.id
+    ).run()
+
+    // Fire auth:password-reset:completed for audit/notification plugins.
+    dispatchHookEvent(
+      c,
+      'auth:password-reset:completed',
+      { user: { id: user.id, email: user.email } },
+      'fire-and-forget'
+    )
+
+    // Redirect to login with success message
+    return c.redirect('/auth/login?message=Password reset successfully. Please log in with your new password.')
+
+  } catch (error) {
+    console.error('Password reset error:', error)
+    return c.json({ error: 'Failed to reset password' }, 500)
+  }
+})
+
+export default authRoutes

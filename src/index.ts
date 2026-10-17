@@ -1,0 +1,405 @@
+/**
+ * @sonicjs/core - Main Entry Point
+ *
+ * Core framework for SonicJS headless CMS
+ * Built for Cloudflare's edge platform with TypeScript
+ *
+ * Phase 2 Migration Status:
+ * - Week 1: Types, Utils, Database (COMPLETED ✓)
+ * - Week 2: Services, Middleware, Plugins (COMPLETED ✓)
+ * - Week 3: Routes, Templates (COMPLETED ✓)
+ * - Week 4: Integration & Testing (COMPLETED ✓)
+ *
+ * Test Coverage:
+ * - Utilities: 48 tests (sanitize, query-filter, metrics)
+ * - Middleware: 51 tests (auth, logging, security, performance)
+ * - Total: 99 tests passing
+ */
+
+// ============================================================================
+// Main Application API (Phase 2 Week 1)
+// ============================================================================
+
+export { createSonicJSApp, setupCoreMiddleware, setupCoreRoutes } from './app'
+export type { SonicJSConfig, SonicJSApp, Bindings, Variables, BootIsolateFn } from './app'
+
+// Plugin cron surface + trigger codegen
+export {
+  createScheduledHandler,
+  dispatchCronTick,
+  collectCrons,
+  collectCronSchedules,
+} from './plugins/cron'
+export type { CronDeclaration, CronTickEvent, CronContext, CronablePlugin, CronDispatchResult } from './plugins/cron'
+export { parseCronTriggers, updateWranglerTriggers, generateTriggersComment } from './plugins/generate-triggers'
+
+// Hook system singleton (needed by Worker entries)
+export { getHookSystem, hasHookSystem, setHookSystem, resetHookSystem, getTypedHooks } from './plugins/hooks/hook-system-singleton'
+
+// Plugin topo-sort
+export { topoSort, PluginDependencyCycleError } from './plugins/topo-sort'
+export type { SortablePlugin, TopoSortOptions } from './plugins/topo-sort'
+
+// Single-chokepoint plugin registration
+export { registerPlugins, RegisterPluginsError } from './plugins/sdk/register-plugins'
+export type {
+  RegisterablePlugin,
+  RegisterPluginsHostContext,
+  RegisterPluginsErrorReason,
+  PluginsRegistry,
+  RegistryEntry,
+} from './plugins/sdk/register-plugins'
+
+// Schema-driven plugin settings
+export {
+  parseConfigSchema,
+  renderSchemaFields,
+  parseFormDataToSettings,
+  applySchemaDefaults,
+} from './plugins/sdk/config-schema'
+export type {
+  ConfigSchema,
+  ConfigSchemaField,
+  StringField,
+  NumberField,
+  BooleanField,
+  SelectField,
+  ParsedField,
+  SettingsFor,
+} from './plugins/sdk/config-schema'
+
+// Declarative plugin admin-sidebar menu
+export {
+  setPluginMenu,
+  getPluginMenu,
+  resetPluginMenu,
+  resolvePluginMenuItems,
+} from './services/plugin-menu-singleton'
+export type { PluginMenuEntry, ResolvedPluginMenuEntry } from './services/plugin-menu-singleton'
+
+// RBAC (document-backed) + document type bootstrap — used by app seed scripts
+export { RbacService } from './services/rbac'
+export { bootstrapDocumentTypes } from './services/document-types-seed'
+
+// Document repository + service — re-exported for user plugins that read/write documents
+export { DocumentRepository } from './services/document-repository'
+export { DocumentsService } from './services/documents'
+
+// Cloudflare email provider
+export { CloudflareEmailProvider } from './services/email/providers/cloudflare'
+export type { CloudflareEmailProviderOptions, CFSendEmailBinding } from './services/email/providers/cloudflare'
+export type { EmailLogRow } from './services/email/types'
+
+// Core plugins exported for use in Worker entries and custom scheduled handlers
+export { emailReconciliationPlugin } from './plugins/core-plugins/email-reconciliation'
+export { redirectPlugin, createRedirectPlugin } from './plugins/redirect-management'
+export { helloWorldPlugin, createHelloWorldPlugin } from './plugins/core-plugins/hello-world-plugin'
+export { demoLoginPlugin } from './plugins/core-plugins/demo-login'
+export { versioningPlugin, createVersioningPlugin } from './plugins/core-plugins/versioning-plugin'
+export { graphqlPlugin } from './plugins/core-plugins/graphql-plugin'
+export type { GraphqlConfigInput, GraphqlConfig } from './plugins/core-plugins/graphql-plugin'
+
+// ============================================================================
+// Placeholders - To be populated in Phase 2
+// ============================================================================
+
+// Services - Week 2 (COMPLETED)
+export {
+  // Collection Management — code-only API. DB-backed sync was removed in PR 4
+  // of the drop-db-collections plan; collections live in the in-memory
+  // CollectionRegistry now.
+  loadCollectionConfigs,
+  loadCollectionConfig,
+  getAvailableCollectionNames,
+  validateCollectionConfig,
+  registerCollections,
+  // Database Migrations
+  MigrationService,
+  // Logging
+  Logger,
+  getLogger,
+  initLogger,
+  // Plugin Services - Class implementations
+  PluginService as PluginServiceClass,
+  PluginBootstrapService,
+} from './services'
+
+export type { Migration, MigrationStatus, LogLevel, LogCategory, LogEntry, LogFilter, CorePlugin } from './services'
+
+// Collections - Code-defined managed collections
+export { default as siteSettingsCollection } from './collections/site-settings.collection'
+
+// Middleware - Week 2 (COMPLETED)
+export {
+  // Authentication
+  AuthManager,
+  requireAuth,
+  requireRole,
+  optionalAuth,
+  // Logging
+  loggingMiddleware,
+  detailedLoggingMiddleware,
+  securityLoggingMiddleware,
+  performanceLoggingMiddleware,
+  // Performance
+  cacheHeaders,
+  compressionMiddleware,
+  securityHeaders,
+  // Permissions
+  PermissionManager,
+  requirePermission,
+  requireAnyPermission,
+  logActivity,
+  // Plugin middleware
+  requireActivePlugin,
+  requireActivePlugins,
+  getActivePlugins,
+  isPluginActive,
+  // Bootstrap
+  bootstrapMiddleware,
+} from './middleware'
+
+export type { Permission, UserPermissions } from './middleware'
+
+// Plugins - Week 2 (COMPLETED)
+export {
+  // Hook System - Class implementations
+  HookSystemImpl,
+  ScopedHookSystem as ScopedHookSystemClass,
+  HookUtils,
+  // Plugin Registry
+  PluginRegistryImpl,
+  // Plugin Manager - Class implementation
+  PluginManager as PluginManagerClass,
+  // Plugin Validator - Class implementation
+  PluginValidator as PluginValidatorClass,
+} from './plugins'
+
+// Routes - Week 3 (COMPLETED)
+export {
+  ROUTES_INFO,
+  apiRoutes,
+  apiContentCrudRoutes,
+  apiMediaRoutes,
+  apiSystemRoutes,
+  adminApiRoutes,
+  authRoutes,
+  adminContentRoutes,
+  adminUsersRoutes,
+  adminMediaRoutes,
+  adminLogsRoutes,
+  adminPluginRoutes,
+  adminCheckboxRoutes,
+  adminDashboardRoutes,
+  adminCollectionsRoutes,
+  adminSettingsRoutes,
+} from './routes'
+
+// Templates - Week 3 (COMPLETED)
+export {
+  // Form templates
+  renderForm,
+  renderFormField,
+  // Table templates
+  renderTable,
+  // Pagination templates
+  renderPagination,
+  // Alert templates
+  renderAlert,
+  // Confirmation dialog templates
+  renderConfirmationDialog,
+  getConfirmationDialogScript,
+  // Filter bar templates
+  renderFilterBar,
+  // Admin layout (catalyst)
+  renderAdminLayoutCatalyst,
+} from './templates'
+
+export type {
+  FormField,
+  FormData,
+  TableColumn,
+  TableData,
+  PaginationData,
+  AlertData,
+  ConfirmationDialogOptions,
+  FilterBarData,
+  Filter,
+  FilterOption,
+  AdminLayoutCatalystData,
+} from './templates'
+
+// Types - Week 1 (COMPLETED)
+export type {
+  // Collection types
+  FieldType,
+  FieldConfig,
+  CollectionSchema,
+  CollectionConfig,
+  CollectionConfigModule,
+  CollectionSyncResult,
+  // Plugin types
+  Plugin,
+  PluginContext,
+  PluginConfig,
+  PluginRoutes,
+  PluginMiddleware,
+  PluginModel,
+  PluginService,
+  PluginAdminPage,
+  PluginComponent,
+  PluginMenuItem,
+  PluginHook,
+  HookHandler,
+  HookContext,
+  HookSystem,
+  ScopedHookSystem,
+  PluginRegistry,
+  PluginManager,
+  PluginStatus,
+  AuthService,
+  ContentService,
+  MediaService,
+  PluginLogger,
+  PluginBuilderOptions,
+  PluginValidator,
+  PluginValidationResult,
+  HookName,
+  // Plugin manifest
+  PluginManifest,
+} from './types'
+
+export { HOOKS } from './types'
+
+// Utils - Week 1 (COMPLETED)
+export {
+  // Sanitization
+  escapeHtml,
+  sanitizeInput,
+  sanitizeObject,
+  // Template rendering
+  TemplateRenderer,
+  templateRenderer,
+  renderTemplate,
+  // Query filtering
+  QueryFilterBuilder,
+  buildQuery,
+  // Metrics
+  metricsTracker,
+  // Version
+  SONICJS_VERSION,
+  getCoreVersion,
+} from './utils'
+
+export type {
+  FilterOperator,
+  FilterCondition,
+  FilterGroup,
+  QueryFilter,
+  QueryResult,
+} from './utils'
+
+// Database - Week 1 (COMPLETED)
+export {
+  createDb,
+  // Schema exports
+  users,
+  content,
+  contentVersions,
+  media,
+  apiTokens,
+  workflowHistory,
+  plugins,
+  pluginHooks,
+  pluginRoutes,
+  pluginAssets,
+  pluginActivityLog,
+  systemLogs,
+  logConfig,
+  // Zod validation schemas
+  insertUserSchema,
+  selectUserSchema,
+  insertContentSchema,
+  selectContentSchema,
+  insertMediaSchema,
+  selectMediaSchema,
+  insertWorkflowHistorySchema,
+  selectWorkflowHistorySchema,
+  insertPluginSchema,
+  selectPluginSchema,
+  insertPluginHookSchema,
+  selectPluginHookSchema,
+  insertPluginRouteSchema,
+  selectPluginRouteSchema,
+  insertPluginAssetSchema,
+  selectPluginAssetSchema,
+  insertPluginActivityLogSchema,
+  selectPluginActivityLogSchema,
+  insertSystemLogSchema,
+  selectSystemLogSchema,
+  insertLogConfigSchema,
+  selectLogConfigSchema,
+} from './db'
+
+export type {
+  User,
+  NewUser,
+  Content,
+  NewContent,
+  Media,
+  NewMedia,
+  WorkflowHistory,
+  NewWorkflowHistory,
+  Plugin as DbPlugin,
+  NewPlugin,
+  PluginHook as DbPluginHook,
+  NewPluginHook,
+  PluginRoute,
+  NewPluginRoute,
+  PluginAsset,
+  NewPluginAsset,
+  PluginActivityLog,
+  NewPluginActivityLog,
+  SystemLog,
+  NewSystemLog,
+  LogConfig,
+  NewLogConfig,
+} from './db'
+
+// Plugin SDK (v4 — Payload-shaped)
+export { definePlugin, isDefinedPlugin } from './plugins/sdk'
+
+// OAuth Providers Plugin
+export { oauthProvidersPlugin, createOAuthProvidersPlugin } from './plugins/core-plugins/oauth-providers'
+export { OAuthService, BUILT_IN_PROVIDERS } from './plugins/core-plugins/oauth-providers/oauth-service'
+
+// User Profiles Plugin
+export { userProfilesPlugin, createUserProfilesPlugin, defineUserProfile, getUserProfileConfig } from './plugins/core-plugins/user-profiles'
+export type { ProfileFieldDefinition, UserProfileConfig } from './plugins/core-plugins/user-profiles'
+
+// MCP Server Plugin (opt-in)
+export { mcpPlugin, createMcpPlugin } from './plugins/core-plugins/mcp-plugin'
+export type { McpConfigInput, McpConfig } from './plugins/core-plugins/mcp-plugin'
+
+// ============================================================================
+// Version
+// ============================================================================
+
+// Import version from package.json
+import packageJson from '../package.json'
+export const VERSION = packageJson.version
+
+// ============================================================================
+// Phase 2 Migration Notes
+// ============================================================================
+
+/**
+ * This is a work-in-progress package being extracted from the main SonicJS codebase.
+ *
+ * Current Phase: 2 (Core Module Migration)
+ * Current Week: 1 (Types, Utils, Database)
+ *
+ * Expected completion: 4 weeks from 2025-01-17
+ *
+ * DO NOT USE IN PRODUCTION - Alpha release for development only
+ */
