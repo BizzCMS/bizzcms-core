@@ -5,11 +5,11 @@ describe('renderWelcomeEmail', () => {
   it('produces subject + html + text with siteName + loginUrl', () => {
     const out = renderWelcomeEmail({
       user: { firstName: 'Marco', email: 'marco@example.com' },
-      siteName: 'SonicJS',
+      siteName: 'BizzCMS',
       loginUrl: 'https://example.com/login',
     })
 
-    expect(out.subject).toBe('Welcome to SonicJS')
+    expect(out.subject).toBe('Welcome to BizzCMS')
     expect(out.html).toContain('Hi Marco')
     expect(out.html).toContain('https://example.com/login')
     expect(out.text).toContain('Hi Marco')
@@ -19,7 +19,7 @@ describe('renderWelcomeEmail', () => {
   it('falls back to "Hi there" when firstName is omitted', () => {
     const out = renderWelcomeEmail({
       user: { email: 'anon@example.com' },
-      siteName: 'SonicJS',
+      siteName: 'BizzCMS',
       loginUrl: 'https://example.com/login',
     })
 
@@ -30,7 +30,7 @@ describe('renderWelcomeEmail', () => {
   it('HTML-escapes user-controlled fields to block injection', () => {
     const out = renderWelcomeEmail({
       user: { firstName: '<script>alert(1)</script>', email: 'x@y.z' },
-      siteName: 'SonicJS',
+      siteName: 'BizzCMS',
       loginUrl: 'https://example.com/login',
     })
 
@@ -43,7 +43,7 @@ describe('renderWelcomeEmail', () => {
   it('applies the shared layout (color-scheme meta + hook classes)', () => {
     const out = renderWelcomeEmail({
       user: { email: 'x@y.z' },
-      siteName: 'SonicJS',
+      siteName: 'BizzCMS',
       loginUrl: 'https://example.com/login',
     })
     expect(out.html).toContain('color-scheme')

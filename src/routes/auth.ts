@@ -21,8 +21,8 @@ import { isDemoModeActive } from '../services/demo-mode'
 
 const JWT_SECRET_FALLBACK = 'your-super-secret-jwt-key-change-in-production'
 
-const DEMO_EMAIL = 'admin@sonicjs.com'
-const STATS_EVENTS_ENDPOINT = 'https://stats.sonicjs.com/v1/events'
+const DEMO_EMAIL = 'admin@bizzcms.com'
+const STATS_EVENTS_ENDPOINT = 'https://stats.bizzcms.com/v1/events'
 
 async function trackDemoLogin(kv: KVNamespace | undefined): Promise<void> {
   try {
@@ -848,16 +848,16 @@ authRoutes.post('/seed-admin',
     }
 
     results.push({
-      email: 'admin@sonicjs.com',
+      email: 'admin@bizzcms.com',
       status: await upsertSeedUser({
         id: 'admin-user-id',
-        email: 'admin@sonicjs.com',
+        email: 'admin@bizzcms.com',
         name: 'Admin User',
         firstName: 'Admin',
         lastName: 'User',
         role: 'admin',
         rbacRole: 'admin',
-        password: 'sonicjs!',
+        password: 'bizzcms!',
       }),
     })
 
@@ -949,7 +949,7 @@ authRoutes.get('/accept-invitation', async (c) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Accept Invitation - SonicJS AI</title>
+        <title>Accept Invitation - BizzCMS</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
           body {
@@ -1282,7 +1282,7 @@ authRoutes.get('/reset-password', async (c) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Reset Password - SonicJS AI</title>
+        <title>Reset Password - BizzCMS</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
           body {

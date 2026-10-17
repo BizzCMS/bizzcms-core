@@ -525,7 +525,7 @@ export function renderContentFormPage(data: ContentFormData, opts?: { partialOnl
           ? document.querySelector('.field-group[data-group-id="' + defaultGroupId + '"]')
           : groupOrId;
 
-        const scopePrefix = 'sonic:ui:objects:' + getFieldGroupScope() + ':';
+        const scopePrefix = 'bizz:ui:objects:' + getFieldGroupScope() + ':';
         if (!(group instanceof Element)) {
           return scopePrefix + defaultGroupId;
         }

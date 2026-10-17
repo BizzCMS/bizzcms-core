@@ -8,10 +8,10 @@ import { renderLexicalField } from '../../plugins/core-plugins/lexical-editor'
 function getReadFieldValueScript(): string {
   return `
     <script>
-      if (!window.__sonicReadFieldValueInit) {
-        window.__sonicReadFieldValueInit = true;
+      if (!window.__bizzReadFieldValueInit) {
+        window.__bizzReadFieldValueInit = true;
 
-        window.sonicReadFieldValue = function(fieldWrapper) {
+        window.bizzReadFieldValue = function(fieldWrapper) {
           const getDirectChild = (parent, selector) => {
             if (!(parent instanceof Element)) return null;
             return Array.from(parent.children).find(
@@ -57,12 +57,12 @@ function getReadFieldValueScript(): string {
           const readStructuredFieldsHost = (host) => {
             const fields = getDirectStructuredSubfields(host);
             if (fields.length === 1 && fields[0].dataset.structuredField === '__value') {
-              return window.sonicReadFieldValue(fields[0]);
+              return window.bizzReadFieldValue(fields[0]);
             }
             return fields.reduce((acc, subfield) => {
               const fieldName = subfield.dataset.structuredField;
               if (!fieldName || fieldName === '__value') return acc;
-              acc[fieldName] = window.sonicReadFieldValue(subfield);
+              acc[fieldName] = window.bizzReadFieldValue(subfield);
               return acc;
             }, {});
           };
@@ -1014,8 +1014,8 @@ export function renderDynamicField(field: FieldDefinition, options: FieldRenderO
           ></div>
         </div>
         <script>
-          if (typeof sonicSelectUser === 'undefined') {
-            window.sonicSelectUser = function(fieldId, userId, userName) {
+          if (typeof bizzSelectUser === 'undefined') {
+            window.bizzSelectUser = function(fieldId, userId, userName) {
               var d = document.getElementById(fieldId + '-display');
               var h = document.getElementById(fieldId);
               var dd = document.getElementById(fieldId + '-dropdown');
@@ -1865,8 +1865,8 @@ function getJsonViewerScript(): string {
           document.head.appendChild(s);
         }
 
-        if (!window.__sonicJsonViewerInit) {
-          window.__sonicJsonViewerInit = true;
+        if (!window.__bizzJsonViewerInit) {
+          window.__bizzJsonViewerInit = true;
 
           // Toggle between viewer and edit textarea
           document.addEventListener('click', function(e) {
@@ -1936,11 +1936,11 @@ function getStructuredFieldScript(): string {
   return `
     ${getReadFieldValueScript()}
     <script>
-      if (!window.__sonicStructuredFieldInit) {
-        window.__sonicStructuredFieldInit = true;
+      if (!window.__bizzStructuredFieldInit) {
+        window.__bizzStructuredFieldInit = true;
 
         function initializeStructuredFields() {
-          const readFieldValue = window.sonicReadFieldValue;
+          const readFieldValue = window.bizzReadFieldValue;
           const getDirectChild = (parent, selector) => {
             if (!(parent instanceof Element)) return null;
             return Array.from(parent.children).find(
@@ -1973,7 +1973,7 @@ function getStructuredFieldScript(): string {
 
           const getArrayStateKey = (container) => {
             const fieldName = container.dataset.fieldName || 'unknown';
-            return 'sonic:ui:repeaters:' + getCollectionScope() + ':' + fieldName;
+            return 'bizz:ui:repeaters:' + getCollectionScope() + ':' + fieldName;
           };
 
           const readArrayState = (container) => {
@@ -2100,7 +2100,7 @@ function getStructuredFieldScript(): string {
                 typeof template.innerHTML === 'string' &&
                 template.innerHTML.trim()
               ) {
-                container.__sonicStructuredArrayTemplate = template.innerHTML;
+                container.__bizzStructuredArrayTemplate = template.innerHTML;
               }
 
               const getLiveList = () =>
@@ -2108,9 +2108,9 @@ function getStructuredFieldScript(): string {
               const getLiveHiddenInput = () =>
                 hiddenInput || container.querySelector(':scope > input[type="hidden"]');
               const getTemplateHtml = () => {
-                if (typeof container.__sonicStructuredArrayTemplate === 'string' &&
-                    container.__sonicStructuredArrayTemplate.trim()) {
-                  return container.__sonicStructuredArrayTemplate;
+                if (typeof container.__bizzStructuredArrayTemplate === 'string' &&
+                    container.__bizzStructuredArrayTemplate.trim()) {
+                  return container.__bizzStructuredArrayTemplate;
                 }
 
                 const liveTemplate =
@@ -2122,11 +2122,11 @@ function getStructuredFieldScript(): string {
                   typeof liveTemplate.innerHTML === 'string' &&
                   liveTemplate.innerHTML.trim()
                 ) {
-                  container.__sonicStructuredArrayTemplate = liveTemplate.innerHTML;
+                  container.__bizzStructuredArrayTemplate = liveTemplate.innerHTML;
                   return liveTemplate.innerHTML;
                 }
-                return typeof container.__sonicStructuredArrayTemplate === 'string'
-                  ? container.__sonicStructuredArrayTemplate
+                return typeof container.__bizzStructuredArrayTemplate === 'string'
+                  ? container.__bizzStructuredArrayTemplate
                   : '';
               };
 
@@ -2354,8 +2354,8 @@ function getBlocksFieldScript(): string {
   return `
     ${getReadFieldValueScript()}
     <script>
-      if (!window.__sonicBlocksFieldInit) {
-        window.__sonicBlocksFieldInit = true;
+      if (!window.__bizzBlocksFieldInit) {
+        window.__bizzBlocksFieldInit = true;
         const getCollectionScope = () => {
           const url = new URL(window.location.href);
           const collectionFromQuery = url.searchParams.get('collection');
@@ -2368,7 +2368,7 @@ function getBlocksFieldScript(): string {
 
         const getBlocksStateKey = (container) => {
           const fieldName = container.dataset.fieldName || 'unknown';
-          return 'sonic:ui:blocks:' + getCollectionScope() + ':' + fieldName;
+          return 'bizz:ui:blocks:' + getCollectionScope() + ':' + fieldName;
         };
 
         const readBlocksState = (container) => {
@@ -2451,7 +2451,7 @@ function getBlocksFieldScript(): string {
               });
             };
 
-            const readFieldValue = window.sonicReadFieldValue;
+            const readFieldValue = window.bizzReadFieldValue;
 
             const readBlockItem = (item) => {
               if (item.dataset.blockRaw) {

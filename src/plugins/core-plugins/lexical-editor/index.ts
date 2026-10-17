@@ -1,7 +1,7 @@
 /**
  * Lexical Rich Text Editor Plugin
  *
- * Provides Lexical editor integration for rich text editing in SonicJS.
+ * Provides Lexical editor integration for rich text editing in BizzCMS.
  * https://github.com/facebook/lexical
  *
  * On by default for greenfield installs (defaultActive: true).
@@ -566,9 +566,9 @@ export const lexicalEditorPlugin = definePlugin({
   id: 'lexical-editor',
   version: '1.0.0',
   name: 'Lexical Editor',
-  description: 'Lexical rich text editor integration for SonicJS — default editor for richtext fields',
+  description: 'Lexical rich text editor integration for BizzCMS — default editor for richtext fields',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   activate: async () => console.info('✅ Lexical Editor plugin activated'),
   deactivate: async () => console.info('❌ Lexical Editor plugin deactivated'),

@@ -17,7 +17,7 @@ export const workflowPlugin = definePlugin({
   name: 'Workflow',
   description: 'Content workflow management with approval chains, scheduling, and automation.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS', email: 'info@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'info@bizzcms.com' },
   dependencies: ['content-plugin'],
   capabilities: ['hooks.content:subscribe'],
 

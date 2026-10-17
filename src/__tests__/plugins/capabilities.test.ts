@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   FIXED_CAPABILITIES,
   isKnownCapability,
-  SonicCapabilityError,
+  BizzCMSCapabilityError,
   hasCapability,
   assertCapability,
   validateCapabilities,
@@ -88,14 +88,14 @@ describe('hasCapability / assertCapability', () => {
     expect(hasCapability(['email:send'], 'cache:read')).toBe(false)
   })
 
-  it('assertCapability throws SonicCapabilityError for a missing capability', () => {
-    expect(() => assertCapability(['cache:read'], 'email:send', 'my-plugin')).toThrow(SonicCapabilityError)
+  it('assertCapability throws BizzCMSCapabilityError for a missing capability', () => {
+    expect(() => assertCapability(['cache:read'], 'email:send', 'my-plugin')).toThrow(BizzCMSCapabilityError)
     try {
       assertCapability([], 'email:send', 'my-plugin')
     } catch (e) {
-      expect(e).toBeInstanceOf(SonicCapabilityError)
-      expect((e as SonicCapabilityError).capability).toBe('email:send')
-      expect((e as SonicCapabilityError).plugin).toBe('my-plugin')
+      expect(e).toBeInstanceOf(BizzCMSCapabilityError)
+      expect((e as BizzCMSCapabilityError).capability).toBe('email:send')
+      expect((e as BizzCMSCapabilityError).plugin).toBe('my-plugin')
     }
   })
 
@@ -112,9 +112,9 @@ describe('createCapabilityContext', () => {
     expect((ctx.email as any).send()).toBe('sent')
   })
 
-  it('throws SonicCapabilityError when the capability is NOT granted', () => {
+  it('throws BizzCMSCapabilityError when the capability is NOT granted', () => {
     const ctx = createCapabilityContext([], { email: emailProvider }, 'mailer')
-    expect(() => ctx.email).toThrow(SonicCapabilityError)
+    expect(() => ctx.email).toThrow(BizzCMSCapabilityError)
     expect(() => ctx.email).toThrow(/email:send/)
   })
 
@@ -125,7 +125,7 @@ describe('createCapabilityContext', () => {
     expect((readOnly.cache as any).name).toBe('cache')
     expect((writeOnly.cache as any).name).toBe('cache')
     const none = createCapabilityContext([], { cache: cacheProvider })
-    expect(() => none.cache).toThrow(SonicCapabilityError)
+    expect(() => none.cache).toThrow(BizzCMSCapabilityError)
   })
 
   it('throws a clear (non-capability) error if granted but no provider supplied', () => {
@@ -139,7 +139,7 @@ describe('createCapabilityContext', () => {
     expect(ctx.has('cache:read')).toBe(false)
     expect(ctx.capabilities).toEqual(['email:send', 'db:logs'])
     expect(() => ctx.require('email:send')).not.toThrow()
-    expect(() => ctx.require('cache:read')).toThrow(SonicCapabilityError)
+    expect(() => ctx.require('cache:read')).toThrow(BizzCMSCapabilityError)
   })
 
   it('does not call a provider until the accessor is read (lazy)', () => {

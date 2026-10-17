@@ -1,6 +1,6 @@
 # Collections
 
-This directory contains collection configuration files that define the structure and behavior of content types in SonicJS.
+This directory contains collection configuration files that define the structure and behavior of content types in BizzCMS.
 
 ## Overview
 

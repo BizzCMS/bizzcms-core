@@ -26,7 +26,7 @@ describe('SettingsService — real SQLite', () => {
       const result = await service.getGeneralSettings()
 
       expect(result).toEqual({
-        siteName: 'SonicJS AI',
+        siteName: 'BizzCMS',
         siteDescription: 'A modern headless CMS powered by AI',
         adminEmail: 'admin@example.com',
         timezone: 'UTC',

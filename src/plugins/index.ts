@@ -1,7 +1,7 @@
 /**
  * Plugins Module Exports
  *
- * Plugin system and SDK for SonicJS
+ * Plugin system and SDK for BizzCMS
  */
 
 // Hook System
@@ -71,7 +71,7 @@ export type { WirablePlugin, WirableHook, PluginBootContext, WireResult } from '
 export {
   FIXED_CAPABILITIES,
   isKnownCapability,
-  SonicCapabilityError,
+  BizzCMSCapabilityError,
   hasCapability,
   assertCapability,
   validateCapabilities,

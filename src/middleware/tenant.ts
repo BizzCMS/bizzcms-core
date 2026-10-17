@@ -2,7 +2,7 @@
  * Tenant resolution middleware (multi-tenant plugin runtime).
  *
  * Sets `c.set('tenantId', ...)` for every request. While the multi-tenant plugin is inactive this
- * short-circuits to 'default', making behavior identical to single-tenant SonicJS. When active,
+ * short-circuits to 'default', making behavior identical to single-tenant BizzCMS. When active,
  * the tenant is resolved (first match wins) from:
  *
  *   1. the configured tenant header (API clients, default `X-Tenant-Id`)

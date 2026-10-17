@@ -3,8 +3,8 @@
   "name": "Multi-Tenant",
   "version": "1.0.0",
   "description": "Multi-tenancy for the document model: tenant registry, per-request tenant resolution (header, admin switcher cookie, or domain), and tenant-scoped content isolation. Off by default.",
-  "author": "SonicJS Team",
-  "homepage": "https://sonicjs.com/plugins/multi-tenant",
+  "author": "BizzCMS",
+  "homepage": "https://bizzcms.com/plugins/multi-tenant",
   "license": "MIT",
   "category": "utilities",
   "tags": [

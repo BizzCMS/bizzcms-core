@@ -27,7 +27,7 @@ export const apiKeysPlugin = definePlugin({
   name: 'API Keys',
   description: 'Programmatic API access keys for headless / server-to-server REST access.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team' },
+  author: { name: 'BizzCMS' },
 
   register(app) {
     app.route('/admin/plugins/api-keys', apiKeysAdminRoutes as any)

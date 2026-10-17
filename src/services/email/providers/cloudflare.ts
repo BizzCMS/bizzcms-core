@@ -38,7 +38,7 @@ export class CloudflareEmailProvider implements EmailProvider {
 
   constructor(options: CloudflareEmailProviderOptions) {
     this.binding = options.binding
-    this.defaultFrom = options.defaultFrom ?? 'noreply@sonicjs.local'
+    this.defaultFrom = options.defaultFrom ?? 'noreply@bizzcms.local'
   }
 
   isConfigured(): boolean {

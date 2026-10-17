@@ -6,13 +6,13 @@ describe('renderPasswordResetEmail', () => {
     user: { firstName: 'Marco', email: 'marco@example.com' },
     resetLink: 'https://example.com/auth/reset?token=abc123',
     expiresAt: Date.UTC(2026, 4, 13, 15, 0, 0),
-    siteName: 'SonicJS',
+    siteName: 'BizzCMS',
   }
 
   it('includes reset link, expiry, and ignore-instructions in both bodies', () => {
     const out = renderPasswordResetEmail(baseInput)
 
-    expect(out.subject).toBe('Reset your SonicJS password')
+    expect(out.subject).toBe('Reset your BizzCMS password')
     expect(out.html).toContain('https://example.com/auth/reset?token=abc123')
     expect(out.html).toContain('2026-05-13T15:00:00.000Z')
     expect(out.html).toMatch(/safely ignore/i)

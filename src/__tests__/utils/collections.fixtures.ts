@@ -99,12 +99,12 @@ export const mockContent = {
     id: 'content-blog-1',
     collectionId: 'collection-blog-posts-1',
     slug: 'welcome-to-sonicjs',
-    title: 'Welcome to SonicJS AI',
+    title: 'Welcome to BizzCMS',
     data: {
-      title: 'Welcome to SonicJS AI',
-      content: '<h1>Welcome to SonicJS AI</h1><p>This is your first blog post.</p>',
-      excerpt: 'Welcome to SonicJS AI, a modern headless CMS.',
-      tags: ['welcome', 'cms', 'sonicjs'],
+      title: 'Welcome to BizzCMS',
+      content: '<h1>Welcome to BizzCMS</h1><p>This is your first blog post.</p>',
+      excerpt: 'Welcome to BizzCMS, a modern headless CMS.',
+      tags: ['welcome', 'cms', 'bizzcms'],
       status: 'published'
     },
     status: 'published',
@@ -153,7 +153,7 @@ export const mockContent = {
 export const mockUsers = {
   admin: {
     id: 'admin-user-id',
-    email: 'admin@sonicjs.com',
+    email: 'admin@bizzcms.com',
     firstName: 'Admin',
     lastName: 'User',
     role: 'admin',
@@ -164,7 +164,7 @@ export const mockUsers = {
 
   editor: {
     id: 'editor-user-id',
-    email: 'editor@sonicjs.com',
+    email: 'editor@bizzcms.com',
     firstName: 'Editor',
     lastName: 'User',
     role: 'editor',

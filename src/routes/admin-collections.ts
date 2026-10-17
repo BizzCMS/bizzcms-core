@@ -244,7 +244,7 @@ adminCollectionsRoutes.get('/', async (c) => {
 
 // ── New (instructional, no form) ─────────────────────────────────────────────
 
-const DOCS_URL = 'https://sonicjs.com/collections'
+const DOCS_URL = 'https://bizzcms.com/collections'
 
 adminCollectionsRoutes.get('/new', async (c) => {
   const user = c.get('user')
@@ -258,7 +258,7 @@ adminCollectionsRoutes.get('/new', async (c) => {
           <div>
             <h2 class="text-lg font-semibold text-zinc-100">Collections are code-defined</h2>
             <p class="mt-2 text-sm text-zinc-300">
-              SonicJS uses code-first collection definitions. Add a new collection by creating a
+              BizzCMS uses code-first collection definitions. Add a new collection by creating a
               <code class="rounded bg-zinc-800 px-1 py-0.5 text-cyan-400">.collection.ts</code>
               file and registering it via <code class="rounded bg-zinc-800 px-1 py-0.5 text-cyan-400">registerCollections()</code>.
             </p>

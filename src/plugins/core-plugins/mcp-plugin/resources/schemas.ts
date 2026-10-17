@@ -1,5 +1,5 @@
 /**
- * MCP resources — readable `sonicjs://` URIs.
+ * MCP resources — readable `bizzcms://` URIs.
  *
  * v1 exposes collection metadata + per-collection JSON Schema. Document-list
  * resources (`.../documents`) are deferred; agents use the `list_*` tools, which
@@ -26,11 +26,11 @@ export interface ResourceContents {
 
 export function buildResourceList(cfg: ResolvedMcpConfig): ResourceListEntry[] {
   const out: ResourceListEntry[] = [
-    { uri: 'sonicjs://collections', name: 'All collections', mimeType: 'application/json' },
+    { uri: 'bizzcms://collections', name: 'All collections', mimeType: 'application/json' },
   ]
   for (const t of cfg.types) {
     out.push({
-      uri: `sonicjs://collections/${t.typeId}/schema`,
+      uri: `bizzcms://collections/${t.typeId}/schema`,
       name: `${t.displayName} schema`,
       mimeType: 'application/json',
     })
@@ -38,14 +38,14 @@ export function buildResourceList(cfg: ResolvedMcpConfig): ResourceListEntry[] {
   return out
 }
 
-const SCHEMA_URI = /^sonicjs:\/\/collections\/([^/]+)\/schema$/
+const SCHEMA_URI = /^bizzcms:\/\/collections\/([^/]+)\/schema$/
 
 export function readResource(
   uri: string,
   cfg: ResolvedMcpConfig,
   collections: Map<string, CollectionRecord>,
 ): ResourceContents {
-  if (uri === 'sonicjs://collections') {
+  if (uri === 'bizzcms://collections') {
     const list = cfg.types.map((t) => ({
       typeId: t.typeId,
       displayName: t.displayName,

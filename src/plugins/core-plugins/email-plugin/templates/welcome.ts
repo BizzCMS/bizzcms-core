@@ -5,7 +5,7 @@
  * Per scope memo §6.8 content discipline: brief greeting, link to login,
  * mention of help/support, no marketing copy.
  *
- * Visual identity: SonicJS-dark baseline with prefers-color-scheme: light
+ * Visual identity: BizzCMS-dark baseline with prefers-color-scheme: light
  * fallback via the shared `_layout` helper.
  */
 import { escapeHtml } from './_escape'

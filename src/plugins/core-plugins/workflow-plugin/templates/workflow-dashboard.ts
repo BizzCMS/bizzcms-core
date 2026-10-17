@@ -141,7 +141,7 @@ export function renderWorkflowDashboard(data: WorkflowDashboardData): string {
   `
 
   return renderAdminLayout({
-    title: 'Workflow Dashboard - SonicJS AI',
+    title: 'Workflow Dashboard - BizzCMS',
     pageTitle: 'Workflow Dashboard',
     content,
     user: data.user,

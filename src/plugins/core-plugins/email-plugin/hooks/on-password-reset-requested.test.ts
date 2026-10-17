@@ -4,11 +4,11 @@ import {
   setEmailService,
   resetEmailService,
 } from '../../../../services/email/email-service-singleton'
-import type { EmailService, SendEmailResult, SonicHookContext } from '../../../sdk/types'
+import type { EmailService, SendEmailResult, BizzCMSHookContext } from '../../../sdk/types'
 
 function makeCtx(opts: {
   user?: { id: string; email: string; first_name: string | null } | null
-}): SonicHookContext {
+}): BizzCMSHookContext {
   const userRow = opts.user === undefined ? { id: 'u-1', email: 'u@e.c', first_name: 'Marco' } : opts.user
 
   const db = {
@@ -18,10 +18,10 @@ function makeCtx(opts: {
           if (/FROM users/i.test(sql)) return userRow
           return null
         }),
-        all: vi.fn(async () => ({ results: [{ key: 'siteName', value: JSON.stringify('SonicJS') }] })),
+        all: vi.fn(async () => ({ results: [{ key: 'siteName', value: JSON.stringify('BizzCMS') }] })),
       })),
       first: vi.fn(async () => null),
-      all: vi.fn(async () => ({ results: [{ key: 'siteName', value: JSON.stringify('SonicJS') }] })),
+      all: vi.fn(async () => ({ results: [{ key: 'siteName', value: JSON.stringify('BizzCMS') }] })),
     })),
   } as unknown as D1Database
 
@@ -29,7 +29,7 @@ function makeCtx(opts: {
     env: { DB: db, PUBLIC_URL: 'https://example.com' } as never,
     pluginId: 'email',
     plugins: { byId: new Map(), ordered: [] },
-  } as unknown as SonicHookContext
+  } as unknown as BizzCMSHookContext
 }
 
 function makeEmailService(result: Partial<SendEmailResult> = {}): EmailService {

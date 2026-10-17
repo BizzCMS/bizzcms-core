@@ -50,7 +50,7 @@ const CSS_PX_PER_MODULE = 6
 // and the intent is explicit at the plugin boundary.
 twoFactorAdminRoutes.use('*', requireAuth())
 
-// Deactivate→404 gate. SonicJS mounts plugin routes unconditionally and only hides the sidebar
+// Deactivate→404 gate. BizzCMS mounts plugin routes unconditionally and only hides the sidebar
 // entry when a plugin is deactivated, so routes stay reachable by direct URL. Uses the BOOLEAN
 // isPluginActive (not requireActivePlugin, which throws and becomes a 500 via onError).
 //
@@ -161,7 +161,7 @@ twoFactorAdminRoutes.post('/qr', async (c) => {
   // count grows with the URI. `issuer` is operator-configurable up to 64 chars
   // (auth/two-factor-settings.ts) and Better Auth puts it in the URI TWICE — once in the label,
   // once as a parameter — so a long issuer plus a long email reaches ~285 chars and a 69-module
-  // symbol, versus 49 modules for the shipped 'SonicJS' default.
+  // symbol, versus 49 modules for the shipped 'BizzCMS' default.
   //
   // A fixed size therefore silently degrades: at the 236 CSS px this shipped with, a default
   // install got 4.1 px/module and a 64-char issuer got 3.1 — under the ~4 px/module floor where
@@ -201,7 +201,7 @@ twoFactorChallengeRoutes.get('/', (c) => {
 })
 
 /**
- * POST /auth/two-factor/complete — bring a just-challenged session up to the full SonicJS shape.
+ * POST /auth/two-factor/complete — bring a just-challenged session up to the full BizzCMS shape.
  *
  * Better Auth's `verify-totp` / `verify-backup-code` set only `better-auth.session_token`. That is
  * enough for `requireAuth()` (app.ts resolves `c.get('user')` from the BA session), but it leaves

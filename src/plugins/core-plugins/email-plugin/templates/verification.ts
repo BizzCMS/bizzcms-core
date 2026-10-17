@@ -10,7 +10,7 @@
  * Per scope memo §6.8 content discipline: a single verify link, a 24h
  * expiry note, and "if not you, ignore" wording. No marketing copy.
  *
- * Visual identity: SonicJS-dark baseline with prefers-color-scheme:
+ * Visual identity: BizzCMS-dark baseline with prefers-color-scheme:
  * light fallback via the shared `_layout` helper.
  */
 import { escapeHtml } from './_escape'

@@ -13,7 +13,7 @@ const easyMdxPlugin = definePlugin({
   name: 'EasyMDE Markdown Editor',
   description: 'Lightweight markdown editor with live preview.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   activate: async () => console.info('✅ EasyMDE editor plugin activated'),
   deactivate: async () => console.info('❌ EasyMDE editor plugin deactivated'),

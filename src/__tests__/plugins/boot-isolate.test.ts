@@ -2,7 +2,7 @@
  * Tests for T3.2 — bootIsolate extraction, and T3.3 — scheduled() handler wiring.
  */
 import { describe, it, expect, afterEach } from 'vitest'
-import { createSonicJSApp } from '../../app'
+import { createBizzCMSApp } from '../../app'
 import { createScheduledHandler } from '../../plugins/cron'
 import { getHookSystem, hasHookSystem, resetHookSystem, getTypedHooks } from '../../plugins/hooks/hook-system-singleton'
 import type { Plugin } from '../../plugins/types'
@@ -14,9 +14,9 @@ afterEach(() => {
 // Minimal fake env (no D1 needed — bootstrap degrades gracefully)
 const fakeEnv = {} as Record<string, unknown>
 
-describe('SonicJSApp.boot (T3.2 — bootIsolate)', () => {
+describe('BizzCMSApp.boot (T3.2 — bootIsolate)', () => {
   it('is exposed as a function on the returned app', () => {
-    const app = createSonicJSApp()
+    const app = createBizzCMSApp()
     expect(typeof app.boot).toBe('function')
   })
 
@@ -28,7 +28,7 @@ describe('SonicJSApp.boot (T3.2 — bootIsolate)', () => {
       onBoot: async () => { booted = true },
     } as Plugin
 
-    const app = createSonicJSApp({ plugins: { register: [plugin] } })
+    const app = createBizzCMSApp({ plugins: { register: [plugin] } })
 
     expect(booted).toBe(false)
     // Call boot directly (simulates cron-first cold isolate)
@@ -44,7 +44,7 @@ describe('SonicJSApp.boot (T3.2 — bootIsolate)', () => {
       onBoot: async () => { bootCount++ },
     } as Plugin
 
-    const app = createSonicJSApp({ plugins: { register: [plugin] } })
+    const app = createBizzCMSApp({ plugins: { register: [plugin] } })
     await app.boot(fakeEnv)
     await app.boot(fakeEnv)
     await app.boot(fakeEnv)
@@ -60,7 +60,7 @@ describe('SonicJSApp.boot (T3.2 — bootIsolate)', () => {
       onBoot: async () => { bootCount++ },
     } as Plugin
 
-    const app = createSonicJSApp({ plugins: { register: [plugin] } })
+    const app = createBizzCMSApp({ plugins: { register: [plugin] } })
 
     // First: call boot directly (cron path)
     await app.boot(fakeEnv)
@@ -79,7 +79,7 @@ describe('SonicJSApp.boot (T3.2 — bootIsolate)', () => {
       onBoot: async () => { booted = true },
     } as Plugin
 
-    const app = createSonicJSApp({ plugins: { disableAll: true, register: [plugin] } })
+    const app = createBizzCMSApp({ plugins: { disableAll: true, register: [plugin] } })
     await app.boot(fakeEnv)
     expect(booted).toBe(false)
   })
@@ -98,7 +98,7 @@ describe('createScheduledHandler with boot option (T3.3)', () => {
       onBoot: async () => {},
     } as Plugin
 
-    const app = createSonicJSApp({ plugins: { register: [plugin] } })
+    const app = createBizzCMSApp({ plugins: { register: [plugin] } })
 
     // No HTTP request has been made — hook system not yet wired.
     // The scheduled handler must call boot() to wire it.
@@ -117,7 +117,7 @@ describe('createScheduledHandler with boot option (T3.3)', () => {
   })
 
   it('skips dispatch when disabled is true', async () => {
-    const app = createSonicJSApp()
+    const app = createBizzCMSApp()
     const handler = createScheduledHandler({
       plugins: [],
       getHooks: getHookSystem,
@@ -131,7 +131,7 @@ describe('createScheduledHandler with boot option (T3.3)', () => {
   })
 
   it('handler result is unmatched when no plugins declare the fired schedule', async () => {
-    const app = createSonicJSApp()
+    const app = createBizzCMSApp()
     await app.boot(fakeEnv) // pre-boot
 
     const handler = createScheduledHandler({

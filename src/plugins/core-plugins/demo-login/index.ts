@@ -19,8 +19,8 @@ const demoLoginJs = `
       const passwordInput = document.getElementById('password');
 
       if (emailInput && passwordInput) {
-        emailInput.value = 'admin@sonicjs.com';
-        passwordInput.value = 'sonicjs!';
+        emailInput.value = 'admin@bizzcms.com';
+        passwordInput.value = 'bizzcms!';
 
         const form = emailInput.closest('form');
         if (form) {
@@ -60,9 +60,9 @@ export const demoLoginPlugin = definePlugin({
   id: 'demo-login-plugin',
   version: '1.0.0',
   name: 'Demo Login',
-  description: 'Prefills login form with demo credentials (admin@sonicjs.com/sonicjs!) for easy site demonstration.',
+  description: 'Prefills login form with demo credentials (admin@bizzcms.com/bizzcms!) for easy site demonstration.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS' },
+  author: { name: 'BizzCMS' },
 
   async onBoot(ctx) {
     setDemoModeActive()

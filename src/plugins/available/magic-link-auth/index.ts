@@ -241,8 +241,8 @@ export function createMagicLinkAuthPlugin(): Plugin {
     version: '1.0.0',
     description: 'Passwordless authentication via email magic links',
     author: {
-      name: 'SonicJS Team',
-      email: 'team@sonicjs.com'
+      name: 'BizzCMS',
+      email: 'team@bizzcms.com'
     },
     dependencies: ['email'],
 
@@ -373,7 +373,7 @@ function renderMagicLinkEmail(magicLink: string, expiryMinutes: number): string 
         </div>
 
         <div class="footer">
-          <p>This is an automated email from SonicJS.</p>
+          <p>This is an automated email from BizzCMS.</p>
           <p>For security, this link can only be used once.</p>
         </div>
       </div>

@@ -262,7 +262,7 @@ adminPluginRoutes.get('/:id', async (c) => {
       // Get site name from general settings via SettingsService
       const settingsService = new SettingsService(db)
       const generalSettings = await settingsService.getGeneralSettings()
-      const siteName = generalSettings.siteName || 'SonicJS'
+      const siteName = generalSettings.siteName || 'BizzCMS'
 
       // Check if email plugin is configured
       const emailPlugin = await db.prepare(`

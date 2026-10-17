@@ -85,7 +85,7 @@ describe('mcp plugin — endpoint over real SQLite', () => {
 
   it('initialize returns the handshake', async () => {
     const { body } = await rpc(app, 'initialize')
-    expect(body.result.serverInfo.name).toBe('sonicjs-mcp')
+    expect(body.result.serverInfo.name).toBe('bizzcms-mcp')
     expect(body.result.capabilities).toHaveProperty('tools')
     expect(body.result.capabilities).toHaveProperty('resources')
   })
@@ -176,7 +176,7 @@ describe('mcp plugin — endpoint over real SQLite', () => {
   })
 
   it('resources/read returns JSON Schema for a type', async () => {
-    const { body } = await rpc(app, 'resources/read', { uri: 'sonicjs://collections/mcp_post/schema' })
+    const { body } = await rpc(app, 'resources/read', { uri: 'bizzcms://collections/mcp_post/schema' })
     const schema = JSON.parse(body.result.contents[0].text)
     expect(schema.type).toBe('object')
     expect(schema.properties).toHaveProperty('title')

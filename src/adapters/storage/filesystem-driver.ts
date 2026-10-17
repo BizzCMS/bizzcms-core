@@ -7,7 +7,7 @@
  * Usage:
  *   import { createFilesystemDriver } from 'bizzcms-core/adapters'
  *   const bucket = createFilesystemDriver('./data/media')
- *   // Pass `bucket` anywhere SonicJS expects the MEDIA_BUCKET R2Bucket binding.
+ *   // Pass `bucket` anywhere BizzCMS expects the MEDIA_BUCKET R2Bucket binding.
  */
 
 import { createReadStream, existsSync, mkdirSync, rmSync, statSync, writeFileSync, readFileSync } from 'node:fs'

@@ -7,7 +7,7 @@
  *     context.path === '/sign-in/email' || '/sign-in/username' || '/sign-in/phone-number'
  *
  * (better-auth/dist/plugins/two-factor/index.mjs). Every OTHER path that mints a session
- * therefore issues one with no second factor. In SonicJS that means the two BA plugins
+ * therefore issues one with no second factor. In BizzCMS that means the two BA plugins
  * composed alongside it in `auth/config.ts`:
  *
  *   - `magicLink`  → POST /auth/sign-in/magic-link, GET /auth/magic-link/verify
@@ -23,7 +23,7 @@
  * `passwordless-second-factor-guard.ts`.
  *
  * ── Fail closed, deliberately ──
- * Most SonicJS DB helpers degrade open on a D1 error, which is right in front of a CMS read.
+ * Most BizzCMS DB helpers degrade open on a D1 error, which is right in front of a CMS read.
  * This sits in front of a session mint, and the failure mode of guessing "no second factor"
  * is handing an unchallenged session to precisely the account that asked for the extra
  * factor. So a query error here BLOCKS.

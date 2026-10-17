@@ -52,7 +52,7 @@ export function renderDashboardPage(data: DashboardPageData): string {
     <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-2xl/8 font-semibold text-zinc-950 dark:text-white sm:text-xl/8">Dashboard</h1>
-        <p class="mt-2 text-sm/6 text-zinc-500 dark:text-zinc-400">Welcome to your SonicJS AI admin dashboard</p>
+        <p class="mt-2 text-sm/6 text-zinc-500 dark:text-zinc-400">Welcome to your BizzCMS admin dashboard</p>
       </div>
     </div>
 
@@ -128,7 +128,7 @@ export function renderDashboardPageWithDynamicMenu(
     <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-2xl/8 font-semibold text-zinc-950 dark:text-white sm:text-xl/8">Dashboard</h1>
-        <p class="mt-2 text-sm/6 text-zinc-500 dark:text-zinc-400">Welcome to your SonicJS AI admin dashboard</p>
+        <p class="mt-2 text-sm/6 text-zinc-500 dark:text-zinc-400">Welcome to your BizzCMS admin dashboard</p>
       </div>
     </div>
 

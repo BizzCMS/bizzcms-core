@@ -18,7 +18,7 @@ export const versioningPlugin = definePlugin({
   name: 'Versioning',
   description: 'View and restore content version history for types with versioning enabled.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   register(app) {
     app.route('/admin/versioning', routes)

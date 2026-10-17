@@ -6,11 +6,11 @@
 
 import pkg from '../../package.json'
 
-export const SONICJS_VERSION = pkg.version
+export const BIZZCMS_VERSION = pkg.version
 
 /**
- * Get the current SonicJS core version
+ * Get the current BizzCMS core version
  */
 export function getCoreVersion(): string {
-  return SONICJS_VERSION
+  return BIZZCMS_VERSION
 }

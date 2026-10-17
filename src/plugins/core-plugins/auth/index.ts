@@ -35,7 +35,7 @@ export const authPlugin = definePlugin({
   name: 'Authentication',
   description: 'Core authentication and authorization plugin.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   register(app) {
     app.route('/api/auth', authAPI)

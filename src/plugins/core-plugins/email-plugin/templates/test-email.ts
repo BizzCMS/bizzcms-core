@@ -6,7 +6,7 @@
  * confirming binding works" wording. No marketing, no help links — just
  * the verification confirmation.
  *
- * Visual identity: SonicJS-dark baseline with prefers-color-scheme: light
+ * Visual identity: BizzCMS-dark baseline with prefers-color-scheme: light
  * fallback via the shared `_layout` helper.
  */
 import { escapeHtml } from './_escape'

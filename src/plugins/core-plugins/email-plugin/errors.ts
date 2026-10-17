@@ -11,9 +11,9 @@
  *     `fromEmail` (configuration error)
  *
  * Pattern matches `packages/core/src/plugins/sdk/register-plugins.ts:83`
- * (`SonicCapabilityError`) and `:103` (`SonicAdapterError`) — `extends Error`
+ * (`BizzCMSCapabilityError`) and `:103` (`BizzCMSAdapterError`) — `extends Error`
  * directly with a `name` field set to the class name. **There is NO
- * `SonicError` base class** in this codebase, despite earlier scope-memo
+ * `BizzCMSError` base class** in this codebase, despite earlier scope-memo
  * text suggesting one; the correction was confirmed in the design doc
  * §3 Decision 6 deep-review correction on 2026-05-13.
  *

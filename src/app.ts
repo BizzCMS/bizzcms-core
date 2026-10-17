@@ -1,7 +1,7 @@
 /**
  * Main Application Factory
  *
- * Creates a configured SonicJS application with all core functionality
+ * Creates a configured BizzCMS application with all core functionality
  */
 
 import { Hono } from 'hono'
@@ -153,7 +153,7 @@ export interface Variables {
   tenantRole?: string
 }
 
-export interface SonicJSConfig {
+export interface BizzCMSConfig {
   // Collections configuration
   collections?: {
     directory?: string
@@ -179,7 +179,7 @@ export interface SonicJSConfig {
      * `/admin` catch-all so plugin admin pages are not shadowed.
      *
      * @example
-     * createSonicJSApp({ plugins: { register: [contactFormPlugin] } })
+     * createBizzCMSApp({ plugins: { register: [contactFormPlugin] } })
      */
     register?: Plugin[]
     /**
@@ -238,11 +238,11 @@ export interface SonicJSConfig {
 export type BootIsolateFn = (env: Record<string, unknown>) => Promise<void>
 
 /**
- * The app returned by {@link createSonicJSApp}. Extends the Hono app with a
+ * The app returned by {@link createBizzCMSApp}. Extends the Hono app with a
  * `boot` function that wires plugins from env bindings, suitable for use in a
  * Worker `scheduled()` handler.
  */
-export type SonicJSApp = Hono<{ Bindings: Bindings; Variables: Variables }> & {
+export type BizzCMSApp = Hono<{ Bindings: Bindings; Variables: Variables }> & {
   /** Boot the plugin infrastructure from Cloudflare env bindings (once-guarded). */
   readonly boot: BootIsolateFn
 }
@@ -252,16 +252,16 @@ export type SonicJSApp = Hono<{ Bindings: Bindings; Variables: Variables }> & {
 // ============================================================================
 
 /**
- * Create a SonicJS application with core functionality
+ * Create a BizzCMS application with core functionality
  *
  * @param config - Application configuration
  * @returns Configured Hono application
  *
  * @example
  * ```typescript
- * import { createSonicJSApp } from 'bizzcms-core'
+ * import { createBizzCMSApp } from 'bizzcms-core'
  *
- * const app = createSonicJSApp({
+ * const app = createBizzCMSApp({
  *   collections: {
  *     directory: './src/collections',
  *     autoSync: true
@@ -275,12 +275,12 @@ export type SonicJSApp = Hono<{ Bindings: Bindings; Variables: Variables }> & {
  * export default app
  * ```
  */
-export function createSonicJSApp(config: SonicJSConfig = {}): SonicJSApp {
+export function createBizzCMSApp(config: BizzCMSConfig = {}): BizzCMSApp {
   const app = new Hono<{ Bindings: Bindings; Variables: Variables }>()
 
   // Set app metadata
   const appVersion = config.version || getCoreVersion()
-  const appName = config.name || 'SonicJS AI'
+  const appName = config.name || 'BizzCMS'
 
   // ── Plugin hook system (two-phase boot) ───────────────────────────────────
   // Create the app's hook system and publish it as the process singleton so
@@ -391,7 +391,7 @@ export function createSonicJSApp(config: SonicJSConfig = {}): SonicJSApp {
       }
     }
 
-    defaultFrom = defaultFrom || (env.DEFAULT_FROM_EMAIL as string | undefined) || 'noreply@sonicjs.local'
+    defaultFrom = defaultFrom || (env.DEFAULT_FROM_EMAIL as string | undefined) || 'noreply@bizzcms.local'
     setEmailService(new EmailService({ provider, defaultFrom, defaultReplyTo, db: env.DB as never }))
   }
 
@@ -883,17 +883,17 @@ export function createSonicJSApp(config: SonicJSConfig = {}): SonicJSApp {
 
   // Attach boot to the app object so Worker entries can pass it to
   // createScheduledHandler without having to recreate the boot logic.
-  return Object.assign(app, { boot }) as SonicJSApp
+  return Object.assign(app, { boot }) as BizzCMSApp
 }
 
 /**
  * Setup core middleware (backward compatibility)
  *
  * @param _app - Hono application
- * @deprecated Use createSonicJSApp() instead
+ * @deprecated Use createBizzCMSApp() instead
  */
-export function setupCoreMiddleware(_app: SonicJSApp): void {
-  console.warn('setupCoreMiddleware is deprecated. Use createSonicJSApp() instead.')
+export function setupCoreMiddleware(_app: BizzCMSApp): void {
+  console.warn('setupCoreMiddleware is deprecated. Use createBizzCMSApp() instead.')
   // Backward compatibility implementation
 }
 
@@ -901,9 +901,9 @@ export function setupCoreMiddleware(_app: SonicJSApp): void {
  * Setup core routes (backward compatibility)
  *
  * @param _app - Hono application
- * @deprecated Use createSonicJSApp() instead
+ * @deprecated Use createBizzCMSApp() instead
  */
-export function setupCoreRoutes(_app: SonicJSApp): void {
-  console.warn('setupCoreRoutes is deprecated. Use createSonicJSApp() instead.')
+export function setupCoreRoutes(_app: BizzCMSApp): void {
+  console.warn('setupCoreRoutes is deprecated. Use createBizzCMSApp() instead.')
   // Backward compatibility implementation
 }

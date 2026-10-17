@@ -256,7 +256,7 @@ export class AuthManager {
    * decoded payload, or null when the token is missing, malformed, expired,
    * or signed with a different secret.
    *
-   * Use this from custom Hono routes mounted alongside SonicJS — it
+   * Use this from custom Hono routes mounted alongside BizzCMS — it
    * resolves the secret the same way `requireAuth()` does, without forcing
    * the caller to plumb it through manually.
    */

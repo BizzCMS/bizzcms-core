@@ -1,7 +1,7 @@
 /**
  * Utils Module Exports
  *
- * Utility functions for SonicJS
+ * Utility functions for BizzCMS
  */
 
 // HTML Sanitization Utilities
@@ -28,7 +28,7 @@ export {
 export { metricsTracker } from './metrics'
 
 // Version Info
-export { SONICJS_VERSION, getCoreVersion } from './version'
+export { BIZZCMS_VERSION, getCoreVersion } from './version'
 
 // Telemetry Utilities
 export {

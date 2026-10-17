@@ -15,7 +15,7 @@ export const formsPlugin = definePlugin({
   name: 'Forms',
   description: 'Form builder with Form.io integration, CAPTCHA support, and submission management.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   register(app) {
     app.route('/admin/forms', adminFormsRoutes as any)

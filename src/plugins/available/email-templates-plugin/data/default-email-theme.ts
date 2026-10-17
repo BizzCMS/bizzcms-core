@@ -1,8 +1,8 @@
 import { NewEmailTheme } from '../schema';
 
 export const DEFAULT_EMAIL_THEME: Omit<NewEmailTheme, 'id' | 'createdBy' | 'createdAt' | 'updatedAt'> = {
-  name: 'SonicJS AI Default',
-  description: 'Professional email theme matching SonicJS AI branding',
+  name: 'BizzCMS Default',
+  description: 'Professional email theme matching BizzCMS branding',
   isDefault: true,
   isActive: true,
   

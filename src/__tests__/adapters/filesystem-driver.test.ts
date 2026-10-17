@@ -9,7 +9,7 @@ let dir: string
 let storage: StorageDriver
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'sonic-fs-test-'))
+  dir = mkdtempSync(join(tmpdir(), 'bizz-fs-test-'))
   storage = createFilesystemDriver(dir)
 })
 

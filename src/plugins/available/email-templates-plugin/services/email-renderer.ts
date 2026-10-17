@@ -82,8 +82,8 @@ export class EmailTemplateRenderer {
     const now = new Date();
     return {
       site: {
-        name: 'SonicJS AI',
-        url: 'https://sonicjs-ai.com',
+        name: 'BizzCMS',
+        url: 'https://bizzcms.com',
         logo: '/favicon.svg',
       },
       date: {
@@ -246,9 +246,9 @@ export class EmailTemplateRenderer {
       
       // Content specific
       content: {
-        title: 'Getting Started with SonicJS AI',
+        title: 'Getting Started with BizzCMS',
         url: 'https://example.com/content/123',
-        excerpt: 'Learn how to build amazing web applications with SonicJS AI...',
+        excerpt: 'Learn how to build amazing web applications with BizzCMS...',
       },
       
       // Contact form specific
@@ -259,7 +259,7 @@ export class EmailTemplateRenderer {
         submittedAt: new Date().toISOString(),
       },
       submissionId: 'SUB-12345',
-      replyToEmail: 'support@sonicjs-ai.com',
+      replyToEmail: 'support@bizzcms.com',
     };
   }
 }

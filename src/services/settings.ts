@@ -107,7 +107,7 @@ export class SettingsService {
     const settings = await this.getSettingsDocument('general')
 
     return {
-      siteName: settings?.siteName || 'SonicJS AI',
+      siteName: settings?.siteName || 'BizzCMS',
       siteDescription: settings?.siteDescription || 'A modern headless CMS powered by AI',
       adminEmail: settings?.adminEmail || userEmail || 'admin@example.com',
       timezone: settings?.timezone || 'UTC',

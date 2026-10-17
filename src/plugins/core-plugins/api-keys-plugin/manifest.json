@@ -3,7 +3,7 @@
   "name": "API Keys",
   "version": "1.0.0-beta.1",
   "description": "Programmatic API access keys for headless / server-to-server REST access. Long-lived per-user secrets, hashed at rest, managed from an admin page.",
-  "author": "SonicJS Team",
+  "author": "BizzCMS",
   "category": "security",
   "tags": ["security", "api", "auth", "api-keys", "headless"],
   "dependencies": [],

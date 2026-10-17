@@ -28,7 +28,7 @@ vi.mock('../../../../middleware/plugin-middleware', () => ({
 const { twoFactorAdminRoutes } = await import('../routes')
 
 const VALID_URI =
-  'otpauth://totp/SonicJS:admin@sonicjs.com?secret=JBSWY3DPEHPK3PXP&issuer=SonicJS&algorithm=SHA1&digits=6&period=30'
+  'otpauth://totp/BizzCMS:admin@bizzcms.com?secret=JBSWY3DPEHPK3PXP&issuer=BizzCMS&algorithm=SHA1&digits=6&period=30'
 
 function makeApp() {
   const app = new Hono()
@@ -80,7 +80,7 @@ describe('POST /admin/two-factor/qr', () => {
     // primitive, because a QR is unreadable to the human deciding whether to trust it.
     for (const bad of [
       'https://evil.test/steal',
-      'otpauth://hotp/SonicJS:a@b.c?secret=X',
+      'otpauth://hotp/BizzCMS:a@b.c?secret=X',
       'javascript:alert(1)',
       '',
       42,
@@ -128,8 +128,8 @@ describe('POST /admin/two-factor/qr — scannability', () => {
   }
 
   const CASES = [
-    { name: 'shipped default issuer', uri: uriFor('SonicJS', 'admin@sonicjs.com') },
-    { name: 'max-length issuer', uri: uriFor('A'.repeat(64), 'admin@sonicjs.com') },
+    { name: 'shipped default issuer', uri: uriFor('BizzCMS', 'admin@bizzcms.com') },
+    { name: 'max-length issuer', uri: uriFor('A'.repeat(64), 'admin@bizzcms.com') },
     {
       name: 'max-length issuer + long email',
       uri: uriFor('A'.repeat(64), 'marketing.operations@some-long-company-name.example.com'),

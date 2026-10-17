@@ -34,6 +34,7 @@ export type {
   SendOptions,
 } from './queue/sync-queue-driver'
 
-// Node / Bun server adapter — wires all local drivers into a SonicJS app
-export { createNodeSonicApp } from './node-server'
+// Node / Bun server adapter — wires all local drivers into a BizzCMS app
+export { createNodeBizzCMSApp } from './node-server'
+export { createNodeBizzCMSApp as createNodeSonicApp } from './node-server' // deprecated alias
 export type { NodeAdapterOptions } from './node-server'

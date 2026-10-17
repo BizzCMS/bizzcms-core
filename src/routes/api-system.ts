@@ -103,7 +103,7 @@ apiSystemRoutes.get('/info', (c) => {
   const appVersion = c.get('appVersion') || '1.0.0'
 
   return c.json({
-    name: 'SonicJS',
+    name: 'BizzCMS',
     version: appVersion,
     description: 'Modern headless CMS built on Cloudflare Workers',
     endpoints: {

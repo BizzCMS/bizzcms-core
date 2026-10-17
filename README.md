@@ -1,23 +1,23 @@
 # bizzcms-core
 
-> Core framework for SonicJS - A modern, TypeScript-first headless CMS built for Cloudflare's edge platform.
+> Core framework for BizzCMS - A modern, TypeScript-first headless CMS built for Cloudflare's edge platform.
 
 [![Version](https://img.shields.io/npm/v/bizzcms-core)](https://www.npmjs.com/package/bizzcms-core)
 [![License](https://img.shields.io/npm/l/bizzcms-core)](./LICENSE)
 
 ---
 
-## 🏠 New to SonicJS?
+## 🏠 New to BizzCMS?
 
-**Visit [sonicjs.com](https://sonicjs.com) for full documentation and guides.**
+**Visit [bizzcms.com](https://bizzcms.com) for full documentation and guides.**
 
-To create a new SonicJS project, use:
+To create a new BizzCMS project, use:
 
 ```bash
-npx create-sonicjs@latest my-app
+npx create-bizzcms@latest my-app
 ```
 
-This is the recommended way to get started with SonicJS. It sets up everything you need with a single command.
+This is the recommended way to get started with BizzCMS. It sets up everything you need with a single command.
 
 ---
 
@@ -59,22 +59,22 @@ npm install wrangler drizzle-kit  # For development
 ```typescript
 // src/index.ts
 import {
-  createSonicJSApp,
+  createBizzCMSApp,
   registerCollections,
 } from 'bizzcms-core'
-import type { SonicJSConfig } from 'bizzcms-core'
+import type { BizzCMSConfig } from 'bizzcms-core'
 import blogPostsCollection from './collections/blog-posts.collection'
 
 // Register code-defined collections before creating the app
 registerCollections([blogPostsCollection])
 
-const config: SonicJSConfig = {
+const config: BizzCMSConfig = {
   plugins: {
     register: [/* your plugins here */],
   },
 }
 
-export default createSonicJSApp(config)
+export default createBizzCMSApp(config)
 ```
 
 ### 2. Define Collections
@@ -122,19 +122,19 @@ export default {
 
 ```toml
 # wrangler.toml
-name = "my-sonicjs-app"
+name = "my-bizzcms-app"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "my-sonicjs-db"
+database_name = "my-bizzcms-db"
 database_id = "your-database-id"
 migrations_dir = "./node_modules/bizzcms-core/migrations"
 
 [[r2_buckets]]
 binding = "MEDIA_BUCKET"
-bucket_name = "my-sonicjs-media"
+bucket_name = "my-bizzcms-media"
 ```
 
 ### 4. Start Development
@@ -154,8 +154,8 @@ Visit `http://localhost:8787/admin` to access the admin interface.
 ### Main Application
 
 ```typescript
-import { createSonicJSApp, registerCollections } from 'bizzcms-core'
-import type { SonicJSConfig, SonicJSApp, Bindings, Variables } from 'bizzcms-core'
+import { createBizzCMSApp, registerCollections } from 'bizzcms-core'
+import type { BizzCMSConfig, BizzCMSApp, Bindings, Variables } from 'bizzcms-core'
 ```
 
 ### Services
@@ -272,7 +272,7 @@ customRoutes.get('/api/custom', requireAuth(), async (c) => {
 })
 
 // In your app config
-export default createSonicJSApp({
+export default createBizzCMSApp({
   plugins: {
     register: [{ name: 'custom', version: '1.0.0', register: (app) => app.route('/custom', customRoutes) }],
   },
@@ -337,7 +337,7 @@ bizzcms-core
 
 ### Migration System
 
-SonicJS uses a **build-time migration bundler** because Cloudflare Workers cannot access the filesystem at runtime. All migration SQL is bundled into TypeScript during the build process.
+BizzCMS uses a **build-time migration bundler** because Cloudflare Workers cannot access the filesystem at runtime. All migration SQL is bundled into TypeScript during the build process.
 
 #### Creating New Migrations
 
@@ -371,7 +371,7 @@ SonicJS uses a **build-time migration bundler** because Cloudflare Workers canno
 
 5. **Apply to your test database**:
    ```bash
-   cd ../my-sonicjs-app
+   cd ../my-bizzcms-app
    wrangler d1 migrations apply DB --local
    ```
 
@@ -402,11 +402,11 @@ The `generate-migrations.ts` script:
 - Generates `src/db/migrations-bundle.ts` with embedded SQL
 - Lets `MigrationService` compare bundled migrations against D1's `d1_migrations` status
 
-**Important**: Cloudflare D1/Wrangler is the migration runner and `d1_migrations` is the canonical tracking table. Run migrations with `wrangler d1 migrations apply`; SonicJS only reports status and runs idempotent compatibility repairs at bootstrap.
+**Important**: Cloudflare D1/Wrangler is the migration runner and `d1_migrations` is the canonical tracking table. Run migrations with `wrangler d1 migrations apply`; BizzCMS only reports status and runs idempotent compatibility repairs at bootstrap.
 
 ## 🔄 Versioning
 
-SonicJS follows semantic versioning:
+BizzCMS follows semantic versioning:
 
 - **v3.x.x** - Current (document model, Better Auth, edge-first)
 - **v2.x.x** - Legacy monolith (deprecated)
@@ -428,11 +428,11 @@ npm run dev
 
 ## 📖 Documentation
 
-- [Getting Started](https://sonicjs.com/installation)
-- [API Reference](https://sonicjs.com/api)
-- [Collections Guide](https://sonicjs.com/collections)
-- [Plugin Development](https://sonicjs.com/plugins)
-- [Deployment](https://sonicjs.com/deployment)
+- [Getting Started](https://bizzcms.com/installation)
+- [API Reference](https://bizzcms.com/api)
+- [Collections Guide](https://bizzcms.com/collections)
+- [Plugin Development](https://bizzcms.com/plugins)
+- [Deployment](https://bizzcms.com/deployment)
 
 ## 🤝 Contributing
 
@@ -440,18 +440,18 @@ We welcome contributions! Please see [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## 📄 License
 
-MIT © SonicJS Team - See [LICENSE](./LICENSE) for details.
+MIT © BizzCMS - See [LICENSE](./LICENSE) for details.
 
 ## 💬 Support & Community
 
 - **Issues**: [GitHub Issues](https://github.com/lane711/sonicjs/issues)
 - **Discord**: [Join our community](https://discord.gg/8bMy6bv3sZ)
-- **Docs**: [sonicjs.com](https://sonicjs.com)
-- **Twitter**: [@sonicjscms](https://twitter.com/sonicjscms)
+- **Docs**: [bizzcms.com](https://bizzcms.com)
+- **Twitter**: [@bizzcmscms](https://twitter.com/bizzcmscms)
 
 ## 🔖 Resources
 
-- [Create SonicJS App](../../packages/create-app) - Scaffold a new project
+- [Create BizzCMS App](../../packages/create-app) - Scaffold a new project
 - [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
 - [D1 Database](https://developers.cloudflare.com/d1/)
 - [R2 Storage](https://developers.cloudflare.com/r2/)

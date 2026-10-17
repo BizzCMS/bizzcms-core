@@ -1,7 +1,7 @@
 /**
  * Plugin-level integration test for the v3 email-plugin (PR-E Phase B step 40).
  *
- * Constructs `createSonicJSApp({ sonicPlugins: [emailPluginV3] })` with a
+ * Constructs `createBizzCMSApp({ bizzPlugins: [emailPluginV3] })` with a
  * mocked CF Email binding + minimal D1 stub and verifies:
  *   1. The plugin is present in the registered v3 set (byId.has('email'))
  *   2. The hook subscriptions are wired into HookSystem (auth events + cron:tick)
@@ -13,7 +13,7 @@
  * `register` function exercising the construction-time path.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createSonicJSApp } from '../../../../app'
+import { createBizzCMSApp } from '../../../../app'
 import { emailPluginV3 } from '..'
 import {
   getEmailService,
@@ -57,13 +57,13 @@ function makeMockEnv(): Record<string, unknown> {
 
 beforeEach(() => {
   resetEmailService()
-  // Note: resetHookSystem would clear the singleton, but createSonicJSApp
+  // Note: resetHookSystem would clear the singleton, but createBizzCMSApp
   // sets a fresh one each construction. We rely on that overwrite-semantic.
 })
 
-describe('emailPluginV3 — registration via createSonicJSApp', () => {
+describe('emailPluginV3 — registration via createBizzCMSApp', () => {
   it('mounts /admin/email/* routes synchronously at construction (Option A)', async () => {
-    const app = createSonicJSApp({ sonicPlugins: [emailPluginV3] })
+    const app = createBizzCMSApp({ bizzPlugins: [emailPluginV3] })
 
     // Sanity: app constructed without throwing
     expect(app).toBeDefined()
@@ -74,10 +74,10 @@ describe('emailPluginV3 — registration via createSonicJSApp', () => {
   })
 
   it('lazy first-request middleware wires EmailServiceImpl + plugin hooks', async () => {
-    const app = createSonicJSApp({ sonicPlugins: [emailPluginV3] })
+    const app = createBizzCMSApp({ bizzPlugins: [emailPluginV3] })
 
     // Fire a request to a route that exercises the v3-init middleware chain.
-    // Use /health which exists on most SonicJS apps; if that doesn't exist,
+    // Use /health which exists on most BizzCMS apps; if that doesn't exist,
     // any request will do — the middleware chain runs on every path.
     const env = makeMockEnv()
     const res = await app.fetch(new Request('http://localhost/'), env)
@@ -91,7 +91,7 @@ describe('emailPluginV3 — registration via createSonicJSApp', () => {
     expect(typeof svc.send).toBe('function')
   })
 
-  it('emailPluginV3 has the expected v3 SonicPlugin shape', () => {
+  it('emailPluginV3 has the expected v3 BizzCMSPlugin shape', () => {
     expect(emailPluginV3.id).toBe('email')
     expect(emailPluginV3.version).toBe('1.0.0')
     expect(emailPluginV3.capabilities).toEqual([
@@ -122,7 +122,7 @@ describe('emailPluginV3 — registration via createSonicJSApp', () => {
 
 describe('emailPluginV3 — self-hosted setup UX (issue #592)', () => {
   it('GET /admin/plugins/email does not crash when EMAIL binding is absent', async () => {
-    const app = createSonicJSApp({ sonicPlugins: [emailPluginV3] })
+    const app = createBizzCMSApp({ bizzPlugins: [emailPluginV3] })
     const res = await app.fetch(
       new Request('http://localhost/admin/plugins/email'),
       { ...makeMockEnv(), EMAIL: undefined },
@@ -131,13 +131,13 @@ describe('emailPluginV3 — self-hosted setup UX (issue #592)', () => {
   })
 
   it('GET /admin/plugins/email does not crash when EMAIL binding is present', async () => {
-    const app = createSonicJSApp({ sonicPlugins: [emailPluginV3] })
+    const app = createBizzCMSApp({ bizzPlugins: [emailPluginV3] })
     const res = await app.fetch(new Request('http://localhost/admin/plugins/email'), makeMockEnv())
     expect(res.status).not.toBe(500)
   })
 
   it('POST /admin/email/settings is reachable (not 500) for any request', async () => {
-    const app = createSonicJSApp({ sonicPlugins: [emailPluginV3] })
+    const app = createBizzCMSApp({ bizzPlugins: [emailPluginV3] })
     await app.fetch(new Request('http://localhost/'), makeMockEnv()) // warm up lazy init
     const res = await app.fetch(
       new Request('http://localhost/admin/email/settings', {

@@ -94,7 +94,7 @@ export function renderTenantForm(data: TenantFormPageData): string {
     </div>`
 
   return renderAdminLayoutCatalyst({
-    title: `${data.isEdit ? 'Edit Tenant' : 'New Tenant'} - SonicJS`,
+    title: `${data.isEdit ? 'Edit Tenant' : 'New Tenant'} - BizzCMS`,
     pageTitle: data.isEdit ? 'Edit Tenant' : 'New Tenant',
     currentPath: '/admin/tenants',
     user: data.user,

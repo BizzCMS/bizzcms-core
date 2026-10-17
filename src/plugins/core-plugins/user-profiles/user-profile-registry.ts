@@ -34,7 +34,7 @@ let _profileConfig: UserProfileConfig | null = null
 
 export function defineUserProfile(config: UserProfileConfig): void {
   if (_profileConfig) {
-    console.warn('[SonicJS] defineUserProfile called multiple times — overwriting previous config')
+    console.warn('[BizzCMS] defineUserProfile called multiple times — overwriting previous config')
   }
   _profileConfig = config
 }

@@ -5,7 +5,7 @@ import {
   resetEmailService,
 } from '../../../../services/email/email-service-singleton'
 import type { EmailService, SendEmailResult } from '../../../sdk/types'
-import type { SonicHookContext } from '../../../sdk/types'
+import type { BizzCMSHookContext } from '../../../sdk/types'
 
 function makeCtx(opts: {
   user?: { id: string; email: string; first_name: string | null } | null
@@ -14,9 +14,9 @@ function makeCtx(opts: {
   verificationRequired?: 'true' | 'false'
   /** PR-EV: simulate the verificationRequired SELECT throwing (pre-migration DB). */
   verificationRequiredThrows?: boolean
-}): SonicHookContext {
+}): BizzCMSHookContext {
   const userRow = opts.user === undefined ? { id: 'u-1', email: 'u@e.c', first_name: 'Marco' } : opts.user
-  const settingsRows = opts.settingsRows ?? [{ key: 'siteName', value: JSON.stringify('SonicJS') }]
+  const settingsRows = opts.settingsRows ?? [{ key: 'siteName', value: JSON.stringify('BizzCMS') }]
 
   const db = {
     prepare: vi.fn((sql: string) => ({
@@ -44,7 +44,7 @@ function makeCtx(opts: {
     env: { DB: db, PUBLIC_URL: 'https://example.com' } as never,
     pluginId: 'email',
     plugins: { byId: new Map(), ordered: [] },
-  } as unknown as SonicHookContext
+  } as unknown as BizzCMSHookContext
 }
 
 function makeEmailService(result: Partial<SendEmailResult> = {}): EmailService {

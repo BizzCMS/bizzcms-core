@@ -154,7 +154,7 @@ export interface CreateScheduledHandlerOptions {
   /** Optional: when true, skip dispatch entirely (mirrors plugins.disableAll). */
   disabled?: boolean
   /**
-   * Boot function from {@link SonicJSApp.boot}. Called before the first cron
+   * Boot function from {@link BizzCMSApp.boot}. Called before the first cron
    * dispatch so a cron-first cold isolate (one that never handled an HTTP
    * request) still has a wired hook bus and reachable email service.
    * Without this, `getHookSystem()` may throw in cron handlers.

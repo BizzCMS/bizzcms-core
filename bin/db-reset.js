@@ -66,14 +66,14 @@ function findWranglerConfig() {
 }
 
 async function main() {
-  log('\n🔧 SonicJS Database Reset Tool', colors.cyan + colors.bold);
+  log('\n🔧 BizzCMS Database Reset Tool', colors.cyan + colors.bold);
   log('================================\n', colors.cyan);
 
   // Find wrangler config (toml, jsonc, or json)
   const wranglerInfo = findWranglerConfig();
   if (!wranglerInfo) {
     log('Error: Could not find wrangler.toml / wrangler.jsonc / wrangler.json in current or parent directories', colors.red);
-    log('Please run this command from your SonicJS project directory.', colors.yellow);
+    log('Please run this command from your BizzCMS project directory.', colors.yellow);
     process.exit(1);
   }
 

@@ -3,7 +3,7 @@
   "name": "Two-Factor Authentication",
   "version": "1.0.0",
   "description": "Time-based one-time passwords (TOTP) with single-use backup codes and per-account second-factor lockout.",
-  "author": "SonicJS Team",
+  "author": "BizzCMS",
   "category": "security",
   "tags": [
     "2fa",
@@ -26,7 +26,7 @@
   "is_core": true,
   "defaultActive": true,
   "defaultSettings": {
-    "issuer": "SonicJS",
+    "issuer": "BizzCMS",
     "maxFailedAttempts": 5,
     "lockoutDurationSeconds": 900,
     "backupCodeCount": 10

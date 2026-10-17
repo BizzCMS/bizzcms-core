@@ -28,7 +28,7 @@ import type { Bindings } from '../../app'
 
 const EMAIL = 'lockout@roundtrip.test'
 const PASSWORD = 'correct-horse-battery-staple'
-const ORIGIN = 'https://sonic.test'
+const ORIGIN = 'https://bizz.test'
 
 let db: TestD1
 let kv: Map<string, string>

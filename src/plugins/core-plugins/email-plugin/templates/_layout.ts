@@ -1,7 +1,7 @@
 /**
  * Shared layout + component helpers for the v3 email-plugin templates.
  *
- * Inline styles set the SonicJS-dark baseline (the "always works" layer);
+ * Inline styles set the BizzCMS-dark baseline (the "always works" layer);
  * a `<style>` block in `<head>` provides a `prefers-color-scheme: light`
  * override for clients that honour media queries (Apple Mail, iOS Mail,
  * modern Outlook, Gmail web). Clients that strip `<style>` blocks fall

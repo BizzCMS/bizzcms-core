@@ -750,7 +750,7 @@ describe('renderDynamicField - Array Fields', () => {
     expect(html).toContain(":scope > input[type=\"hidden\"]");
     expect(html).toContain(":scope > template[data-structured-array-template]");
     expect(html).toContain(":scope > [data-structured-empty]");
-    expect(html).toContain('container.__sonicStructuredArrayTemplate');
+    expect(html).toContain('container.__bizzStructuredArrayTemplate');
   });
 });
 

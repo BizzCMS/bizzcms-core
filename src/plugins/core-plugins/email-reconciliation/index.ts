@@ -53,7 +53,7 @@ export const emailReconciliationPlugin = definePlugin({
   description:
     'Hourly cron that backfills email delivery state from provider status APIs. ' +
     'Only active for providers that implement EmailProvider.reconcile().',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
   capabilities: ['email:send', 'db:email_log'],
   sonicjsVersionRange: '>=2.18.0',
 

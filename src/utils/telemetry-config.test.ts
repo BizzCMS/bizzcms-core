@@ -49,15 +49,15 @@ describe('telemetry-config', () => {
       delete process.env.BIZZCMS_TELEMETRY
       delete process.env.BIZZCMS_TELEMETRY_ENDPOINT
       delete process.env.DO_NOT_TRACK
-      delete process.env.SONICJS_TELEMETRY
+      delete process.env.BIZZCMS_TELEMETRY
     })
 
     it('is false by default (opt-in)', () => {
       expect(isTelemetryEnabled()).toBe(false)
     })
 
-    it('ignores the old SONICJS_TELEMETRY variable', () => {
-      process.env.SONICJS_TELEMETRY = 'true'
+    it('ignores the old BIZZCMS_TELEMETRY variable', () => {
+      process.env.BIZZCMS_TELEMETRY = 'true'
       expect(isTelemetryEnabled()).toBe(false)
     })
 

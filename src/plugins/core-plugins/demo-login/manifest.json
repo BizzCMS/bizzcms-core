@@ -3,8 +3,8 @@
   "name": "Demo Login",
   "version": "1.0.0-beta.1",
   "description": "Quick demo login functionality for testing and demonstrations",
-  "author": "SonicJS Team",
-  "homepage": "https://sonicjs.com/plugins/demo-login",
+  "author": "BizzCMS",
+  "homepage": "https://bizzcms.com/plugins/demo-login",
   "repository": "https://github.com/lane711/sonicjs-ai/tree/main/src/plugins/core-plugins",
   "license": "MIT",
   "category": "utilities",
@@ -27,7 +27,7 @@
   "is_core": false,
   "defaultSettings": {
     "enableNotice": true,
-    "demoEmail": "admin@sonicjs.com",
-    "demoPassword": "sonicjs!"
+    "demoEmail": "admin@bizzcms.com",
+    "demoPassword": "bizzcms!"
   }
 }

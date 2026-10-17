@@ -242,13 +242,13 @@ apiRoutes.get('/', (c) => {
   return c.json({
     openapi: '3.0.0',
     info: {
-      title: 'SonicJS AI API',
+      title: 'BizzCMS API',
       version: getCoreVersion(),
-      description: 'RESTful API for SonicJS headless CMS - a modern, AI-powered content management system built on Cloudflare Workers',
+      description: 'RESTful API for BizzCMS headless CMS - a modern, AI-powered content management system built on Cloudflare Workers',
       contact: {
-        name: 'SonicJS Support',
+        name: 'BizzCMS Support',
         url: `${serverUrl}/docs`,
-        email: 'support@sonicjs.com'
+        email: 'support@bizzcms.com'
       },
       license: {
         name: 'MIT',
@@ -265,7 +265,7 @@ apiRoutes.get('/', (c) => {
       '/api/': {
         get: {
           summary: 'API Information',
-          description: 'Returns OpenAPI specification for the SonicJS API',
+          description: 'Returns OpenAPI specification for the BizzCMS API',
           operationId: 'getApiInfo',
           tags: ['System'],
           responses: {

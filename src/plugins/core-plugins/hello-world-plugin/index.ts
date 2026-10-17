@@ -23,7 +23,7 @@ helloWorldRoutes.get('/', async (c: any) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, 1.0">
-        <title>Hello World - SonicJS</title>
+        <title>Hello World - BizzCMS</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script>tailwind.config = { darkMode: 'class' }</script>
       </head>
@@ -58,7 +58,7 @@ export const helloWorldPlugin = definePlugin({
   name: 'Hello World',
   description: 'A simple demonstration plugin.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   register(app) {
     app.route('/admin/hello-world', helloWorldRoutes)

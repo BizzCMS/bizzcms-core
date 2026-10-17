@@ -382,7 +382,7 @@ export const otpLoginPlugin: DefinedPlugin = definePlugin({
   name: 'OTP Login',
   description: 'Passwordless authentication via email one-time codes.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
   capabilities: ['email:send'],
 
   register(app) {

@@ -1,6 +1,6 @@
 # Route Migration Guide
 
-This document tracks the gradual migration of routes from the SonicJS monolith to the `bizzcms-core` package.
+This document tracks the gradual migration of routes from the BizzCMS monolith to the `bizzcms-core` package.
 
 ## Migration Strategy
 
@@ -226,8 +226,8 @@ curl -X POST http://localhost:8787/auth/register \
 curl -X POST http://localhost:8787/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@sonicjs.com",
-    "password": "sonicjs!"
+    "email": "admin@bizzcms.com",
+    "password": "bizzcms!"
   }'
 
 # Get current user (requires auth cookie)
@@ -665,4 +665,4 @@ After analyzing all remaining route files, here's what we found:
 ## Resources
 
 - [npm link documentation](https://docs.npmjs.com/cli/v8/commands/npm-link)
-- [SonicJS Documentation](https://docs.sonicjs.com)
+- [BizzCMS Documentation](https://docs.bizzcms.com)

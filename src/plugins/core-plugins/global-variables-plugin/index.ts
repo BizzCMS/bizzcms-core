@@ -1,7 +1,7 @@
 /**
  * Global Variables Plugin — Enhanced
  *
- * Extends PR #743 (lane711/sonicjs) with:
+ * Extends PR #743 (lane711/bizzcms) with:
  * - Full CRUD admin page (add, inline edit, delete, toggle active/inactive)
  * - Proper PluginBuilder lifecycle (install, activate, deactivate, uninstall)
  * - Content read hook for {variable_key} server-side resolution
@@ -694,7 +694,7 @@ export const globalVariablesPlugin = definePlugin({
   name: 'Global Variables',
   description: 'Dynamic content variables with inline token support and CRUD admin page.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Community', email: 'community@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'community@bizzcms.com' },
   capabilities: ['hooks.content:subscribe'],
 
   register(app) {
@@ -800,12 +800,12 @@ export function getVariableBlotScript(): string {
         Quill.register(VariableBlot, true);
 
         // ─── Register toolbar enhancer ─────────────────────────────
-        window.__sonicQuillEnhancers = window.__sonicQuillEnhancers || [];
-        window.__sonicQuillEnhancers.push(function(container, quill, toolbar) {
+        window.__bizzQuillEnhancers = window.__bizzQuillEnhancers || [];
+        window.__bizzQuillEnhancers.push(function(container, quill, toolbar) {
           // Skip if already added
           if (toolbar.querySelector('.ql-insertVariable')) return;
 
-          var shared = window.__sonicQuillShared;
+          var shared = window.__bizzQuillShared;
           var varBtn = document.createElement('button');
           varBtn.className = 'ql-insertVariable';
           varBtn.type = 'button';
@@ -852,7 +852,7 @@ export function getVariableBlotScript(): string {
 
 export function getVariableTinyMceScript(): string {
   return getSharedTinyMceStyles() + getTinyMcePluginScript({
-    buttonName: 'sonicInsertVar',
+    buttonName: 'bizzInsertVar',
     buttonText: '\\u{1f524} Var',
     buttonTooltip: 'Insert Global Variable',
     pickerIcon: '\\u{1f524}',
@@ -866,7 +866,7 @@ export function getVariableTinyMceScript(): string {
       return item.key + ' ' + (item.value || '') + ' ' + (item.description || '') + ' ' + (item.category || '');
     }`,
     onSelectJs: `function(editor, item) {
-      editor.insertContent('<span class="sonic-var-chip" contenteditable="false" data-var-key="' + item.key + '">' + item.key + '</span>&nbsp;');
+      editor.insertContent('<span class="bizz-var-chip" contenteditable="false" data-var-key="' + item.key + '">' + item.key + '</span>&nbsp;');
     }`,
   });
 }

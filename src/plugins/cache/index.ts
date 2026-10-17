@@ -1,7 +1,7 @@
 /**
  * Cache Plugin
  *
- * Three-tiered caching system for SonicJS
+ * Three-tiered caching system for BizzCMS
  * - Tier 1: In-Memory (fastest, region-specific)
  * - Tier 2: Cloudflare KV (fast, global)
  * - Tier 3: Database (source of truth)

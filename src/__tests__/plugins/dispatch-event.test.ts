@@ -6,7 +6,7 @@ import { dispatchHookEvent } from '../../plugins/hooks/dispatch-event'
 import { wireRegisteredPlugins } from '../../plugins/wire'
 import { HookSystemImpl } from '../../plugins/hook-system'
 import { setHookSystem, resetHookSystem, getHookSystem } from '../../plugins/hooks/hook-system-singleton'
-import { SonicCapabilityError } from '../../plugins/capabilities'
+import { BizzCMSCapabilityError } from '../../plugins/capabilities'
 import type { WirablePlugin } from '../../plugins/wire'
 
 afterEach(() => {
@@ -155,7 +155,7 @@ describe('wireRegisteredPlugins capability gate', () => {
     }
   })
 
-  it('captures a SonicCapabilityError in strict mode when capability is missing', async () => {
+  it('captures a BizzCMSCapabilityError in strict mode when capability is missing', async () => {
     const plugin: WirablePlugin = {
       name: 'ungated-strict-plugin',
       capabilities: [],
@@ -167,8 +167,8 @@ describe('wireRegisteredPlugins capability gate', () => {
 
     expect(result.subscribed).toBe(0)
     expect(result.errors).toHaveLength(1)
-    expect(result.errors[0]!.error).toBeInstanceOf(SonicCapabilityError)
-    expect((result.errors[0]!.error as SonicCapabilityError).capability).toBe('hooks.auth:subscribe')
+    expect(result.errors[0]!.error).toBeInstanceOf(BizzCMSCapabilityError)
+    expect((result.errors[0]!.error as BizzCMSCapabilityError).capability).toBe('hooks.auth:subscribe')
   })
 
   it('old-style plugins (no capabilities field) are exempt from the gate', async () => {
@@ -186,18 +186,18 @@ describe('wireRegisteredPlugins capability gate', () => {
   })
 })
 
-// ── SonicCapabilityError.accessedApi (T2.5) ───────────────────────────────────
+// ── BizzCMSCapabilityError.accessedApi (T2.5) ───────────────────────────────────
 
-describe('SonicCapabilityError.accessedApi', () => {
+describe('BizzCMSCapabilityError.accessedApi', () => {
   it('carries an optional accessedApi field', () => {
-    const err = new SonicCapabilityError('email:send', 'my-plugin', 'ctx.cap.email')
+    const err = new BizzCMSCapabilityError('email:send', 'my-plugin', 'ctx.cap.email')
     expect(err.capability).toBe('email:send')
     expect(err.plugin).toBe('my-plugin')
     expect(err.accessedApi).toBe('ctx.cap.email')
   })
 
   it('accessedApi is optional — existing constructor signature unchanged', () => {
-    const err = new SonicCapabilityError('email:send', 'my-plugin')
+    const err = new BizzCMSCapabilityError('email:send', 'my-plugin')
     expect(err.accessedApi).toBeUndefined()
   })
 })

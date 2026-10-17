@@ -5,7 +5,7 @@ import { registerPluginRoutes } from '../../plugins/mount'
 import { wireRegisteredPlugins, type PluginBootContext } from '../../plugins/wire'
 import { dispatchCronTick } from '../../plugins/cron'
 import { HookSystemImpl } from '../../plugins/hook-system'
-import { SonicCapabilityError } from '../../plugins/capabilities'
+import { BizzCMSCapabilityError } from '../../plugins/capabilities'
 import type { EmailService } from '../../services/email/email-service'
 
 afterEach(() => vi.restoreAllMocks())
@@ -170,7 +170,7 @@ describe('definePlugin — onBoot enriched context', () => {
       },
     })
     await wireRegisteredPlugins([p], bootCtx())
-    expect(thrown).toBeInstanceOf(SonicCapabilityError)
+    expect(thrown).toBeInstanceOf(BizzCMSCapabilityError)
   })
 
   it('resolves a declared capability through a host-supplied provider', async () => {

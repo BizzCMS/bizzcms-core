@@ -13,7 +13,7 @@ const tinymcePlugin = definePlugin({
   name: 'TinyMCE',
   description: 'Powerful WYSIWYG rich text editor for content creation.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   activate: async () => console.info('✅ TinyMCE plugin activated'),
   deactivate: async () => console.info('❌ TinyMCE plugin deactivated'),

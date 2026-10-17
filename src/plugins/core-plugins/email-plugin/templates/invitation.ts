@@ -7,7 +7,7 @@
  * The handler constructs `acceptLink` from the invitation token + site URL
  * config before calling this helper.
  *
- * Visual identity: SonicJS-dark baseline with prefers-color-scheme: light
+ * Visual identity: BizzCMS-dark baseline with prefers-color-scheme: light
  * fallback via the shared `_layout` helper (matches password-reset and
  * welcome).
  */

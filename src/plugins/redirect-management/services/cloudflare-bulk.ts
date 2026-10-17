@@ -13,7 +13,7 @@ import type { Redirect, MatchType } from '../types'
 
 const CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4'
 const LIST_NAME = 'sonicjs-redirects'
-const RULESET_NAME = 'SonicJS Bulk Redirects'
+const RULESET_NAME = 'BizzCMS Bulk Redirects'
 
 export interface CloudflareConfig {
   apiToken: string
@@ -161,7 +161,7 @@ export async function getOrCreateList(config: CloudflareConfig): Promise<{ succe
     body: JSON.stringify({
       name: LIST_NAME,
       kind: 'redirect',
-      description: 'SonicJS managed redirects - auto-synced from admin panel'
+      description: 'BizzCMS managed redirects - auto-synced from admin panel'
     })
   })
 
@@ -201,11 +201,11 @@ export async function getOrCreateRule(config: CloudflareConfig, _listId: string)
       name: RULESET_NAME,
       kind: 'root',
       phase: 'http_request_redirect',
-      description: 'SonicJS bulk redirects - auto-synced from admin panel',
+      description: 'BizzCMS bulk redirects - auto-synced from admin panel',
       rules: [{
         action: 'redirect',
         expression: `http.request.full_uri in $${LIST_NAME}`,
-        description: 'Redirect from SonicJS managed list',
+        description: 'Redirect from BizzCMS managed list',
         action_parameters: {
           from_list: {
             name: LIST_NAME,
@@ -229,7 +229,7 @@ export async function getOrCreateRule(config: CloudflareConfig, _listId: string)
 }
 
 /**
- * Convert a SonicJS redirect to Cloudflare list item format
+ * Convert a BizzCMS redirect to Cloudflare list item format
  */
 function redirectToCloudflareItem(redirect: Redirect): CloudflareListItem {
   // Build source URL - Cloudflare expects format like "example.com/path" (no protocol)

@@ -24,7 +24,7 @@ function pageData(overrides: Partial<PluginSettingsPageData['plugin']> = {}): Pl
       displayName: 'User Profiles',
       description: 'Custom profile fields for users',
       version: '1.0.0',
-      author: 'SonicJS',
+      author: 'BizzCMS',
       status: 'active',
       category: 'users',
       icon: '👤',
@@ -32,7 +32,7 @@ function pageData(overrides: Partial<PluginSettingsPageData['plugin']> = {}): Pl
       settings: {},
       ...overrides,
     },
-    user: { name: 'Admin', email: 'admin@sonicjs.com', role: 'admin' },
+    user: { name: 'Admin', email: 'admin@bizzcms.com', role: 'admin' },
   }
 }
 
@@ -42,7 +42,7 @@ describe('admin plugin settings page — user-profiles', () => {
 
     expect(html).toContain('id="settings-tab"')
     expect(html).toContain('defineUserProfile')
-    expect(html).toContain('my-sonicjs-app/src/index.ts')
+    expect(html).toContain('my-bizzcms-app/src/index.ts')
   })
 
   it('reports the unconfigured state when defineUserProfile() has not run', () => {

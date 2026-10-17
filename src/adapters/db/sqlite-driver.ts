@@ -7,7 +7,7 @@
  * Usage:
  *   import { createSqliteDriver } from 'bizzcms-core/adapters'
  *   const db = await createSqliteDriver('./data/sonicjs.db')
- *   // Pass `db` anywhere SonicJS expects a D1Database binding.
+ *   // Pass `db` anywhere BizzCMS expects a D1Database binding.
  */
 
 import Database from 'better-sqlite3'
@@ -207,7 +207,7 @@ export interface SqliteDriverOptions {
    */
   dbPath?: string
   /**
-   * When true, applies the bundled SonicJS migrations (0001_core.sql,
+   * When true, applies the bundled BizzCMS migrations (0001_core.sql,
    * 0002_documents.sql) before returning.  Defaults to true when the DB does
    * not yet contain the `auth_user` table (i.e. first boot).
    * Set to false if you manage migrations yourself via an external tool.

@@ -104,7 +104,7 @@ export function renderUserMemberships(data: UserMembershipsPageData): string {
     </div>`
 
   return renderAdminLayoutCatalyst({
-    title: `Tenant memberships - ${data.userEmail} - SonicJS`,
+    title: `Tenant memberships - ${data.userEmail} - BizzCMS`,
     pageTitle: 'Tenant memberships',
     currentPath: '/admin/users',
     user: data.user,

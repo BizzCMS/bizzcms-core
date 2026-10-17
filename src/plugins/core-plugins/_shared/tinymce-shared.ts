@@ -6,7 +6,7 @@
  * is called, and TinyMCE invokes it during initialization.
  *
  * The server-side HTML replacement in index.ts already:
- * 1. Adds button names (sonicInsertVar, sonicInsertSC) to the toolbar config string
+ * 1. Adds button names (bizzInsertVar, bizzInsertSC) to the toolbar config string
  * 2. Injects the script tags BEFORE the initializeTinyMCE call
  *
  * So by the time tinymce.init() runs, PluginManager already knows our plugins,
@@ -18,18 +18,18 @@
 
 /** Picker dropdown CSS (shared, safe to duplicate) */
 export function getSharedTinyMceStyles(): string {
-  return `<style id="sonic-tinymce-styles">
-    .sonic-picker-dropdown{position:fixed;z-index:10000;background:#18181b;border:1px solid #3f3f46;border-radius:8px;box-shadow:0 20px 25px -5px rgba(0,0,0,.5);min-width:280px;max-height:360px;overflow:hidden;display:flex;flex-direction:column}
-    .sonic-picker-dropdown .picker-header{padding:10px 12px;border-bottom:1px solid #27272a;display:flex;align-items:center;gap:8px}
-    .sonic-picker-dropdown .picker-header input{flex:1;background:#09090b;border:1px solid #3f3f46;border-radius:6px;padding:6px 10px;font-size:13px;color:#e4e4e7;outline:none}
-    .sonic-picker-dropdown .picker-header input:focus{border-color:#3b82f6}
-    .sonic-picker-dropdown .picker-body{overflow-y:auto;max-height:280px;padding:4px}
-    .sonic-picker-dropdown .picker-category{padding:6px 10px 2px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#71717a}
-    .sonic-picker-dropdown .picker-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:6px;cursor:pointer;transition:background .1s}
-    .sonic-picker-dropdown .picker-item:hover{background:#27272a}
-    .sonic-picker-dropdown .picker-item .item-key{font-family:ui-monospace,monospace;font-size:13px;font-weight:500}
-    .sonic-picker-dropdown .picker-item .item-value{font-size:12px;color:#71717a;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .sonic-picker-dropdown .picker-empty{padding:20px;text-align:center;color:#52525b;font-size:13px}
+  return `<style id="bizz-tinymce-styles">
+    .bizz-picker-dropdown{position:fixed;z-index:10000;background:#18181b;border:1px solid #3f3f46;border-radius:8px;box-shadow:0 20px 25px -5px rgba(0,0,0,.5);min-width:280px;max-height:360px;overflow:hidden;display:flex;flex-direction:column}
+    .bizz-picker-dropdown .picker-header{padding:10px 12px;border-bottom:1px solid #27272a;display:flex;align-items:center;gap:8px}
+    .bizz-picker-dropdown .picker-header input{flex:1;background:#09090b;border:1px solid #3f3f46;border-radius:6px;padding:6px 10px;font-size:13px;color:#e4e4e7;outline:none}
+    .bizz-picker-dropdown .picker-header input:focus{border-color:#3b82f6}
+    .bizz-picker-dropdown .picker-body{overflow-y:auto;max-height:280px;padding:4px}
+    .bizz-picker-dropdown .picker-category{padding:6px 10px 2px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#71717a}
+    .bizz-picker-dropdown .picker-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:6px;cursor:pointer;transition:background .1s}
+    .bizz-picker-dropdown .picker-item:hover{background:#27272a}
+    .bizz-picker-dropdown .picker-item .item-key{font-family:ui-monospace,monospace;font-size:13px;font-weight:500}
+    .bizz-picker-dropdown .picker-item .item-value{font-size:12px;color:#71717a;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .bizz-picker-dropdown .picker-empty{padding:20px;text-align:center;color:#52525b;font-size:13px}
   </style>`;
 }
 
@@ -54,9 +54,9 @@ export function getTinyMcePluginScript(opts: {
   getSearchTextJs: string
   onSelectJs: string
 }): string {
-  const chipCSS = '.sonic-var-chip{display:inline;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:4px;padding:1px 6px;font-family:ui-monospace,monospace;font-size:.85em;color:#60a5fa;cursor:default}.sonic-var-chip::before{content:\"{\";opacity:.5}.sonic-var-chip::after{content:\"}\";opacity:.5}.sonic-sc-chip{display:inline;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:4px;padding:1px 6px;font-family:ui-monospace,monospace;font-size:.85em;color:#c084fc;cursor:default}.sonic-sc-chip::before{content:\"[[\";opacity:.5}.sonic-sc-chip::after{content:\"]]\";opacity:.5}';
+  const chipCSS = '.bizz-var-chip{display:inline;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:4px;padding:1px 6px;font-family:ui-monospace,monospace;font-size:.85em;color:#60a5fa;cursor:default}.bizz-var-chip::before{content:\"{\";opacity:.5}.bizz-var-chip::after{content:\"}\";opacity:.5}.bizz-sc-chip{display:inline;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:4px;padding:1px 6px;font-family:ui-monospace,monospace;font-size:.85em;color:#c084fc;cursor:default}.bizz-sc-chip::before{content:\"[[\";opacity:.5}.bizz-sc-chip::after{content:\"]]\";opacity:.5}';
 
-  // Each button gets its own TinyMCE plugin name (e.g., "sonicInsertVar" -> "sonicInsertVar")
+  // Each button gets its own TinyMCE plugin name (e.g., "bizzInsertVar" -> "bizzInsertVar")
   // The plugin name matches the button name for simplicity.
   const pluginName = opts.buttonName;
 
@@ -64,13 +64,13 @@ export function getTinyMcePluginScript(opts: {
   <script>
   (function() {
     // ═══ 1. Picker dropdown (idempotent) ═══
-    if (!window.__sonicPicker) {
+    if (!window.__bizzPicker) {
       var ap = null;
       function cp() { if (ap) { ap.remove(); ap = null; } document.removeEventListener('click', odc); }
       function odc(e) { if (ap && !ap.contains(e.target)) cp(); }
-      window.__sonicPicker = function(opts) {
+      window.__bizzPicker = function(opts) {
         cp();
-        var dd = document.createElement('div'); dd.className = 'sonic-picker-dropdown';
+        var dd = document.createElement('div'); dd.className = 'bizz-picker-dropdown';
         var tb = document.querySelector('.tox-toolbar__primary');
         if (tb) { var r = tb.getBoundingClientRect(); dd.style.top = (r.bottom+4)+'px'; dd.style.right = '20px'; }
         else { dd.style.top = '60px'; dd.style.right = '20px'; }
@@ -108,17 +108,17 @@ export function getTinyMcePluginScript(opts: {
     }
 
     // ═══ 2. Track registered plugin names (for init wrapper) ═══
-    window.__sonicTmcePlugins = window.__sonicTmcePlugins || [];
+    window.__bizzTmcePlugins = window.__bizzTmcePlugins || [];
     // Keep these for diagnostics (the test checks them)
-    window.__sonicTmceButtons = window.__sonicTmceButtons || [];
-    window.__sonicTmceSetups = window.__sonicTmceSetups || [];
+    window.__bizzTmceButtons = window.__bizzTmceButtons || [];
+    window.__bizzTmceSetups = window.__bizzTmceSetups || [];
 
     // ═══ 3. Register TinyMCE plugin via PluginManager (the OFFICIAL way) ═══
     // This function waits for tinymce to be defined, then registers the plugin.
     // PluginManager.add() MUST happen before tinymce.init() — the server-side
     // injection places this script before the initializeTinyMCE call, so we
     // just need to wait for the CDN to load tinymce.
-    function registerSonicPlugin() {
+    function registerBizzCMSPlugin() {
       if (typeof tinymce === 'undefined' || !tinymce.PluginManager) return false;
       if (tinymce.PluginManager.get('${pluginName}')) return true; // Already registered
 
@@ -128,7 +128,7 @@ export function getTinyMcePluginScript(opts: {
           text: '${opts.buttonText}',
           tooltip: '${opts.buttonTooltip}',
           onAction: function() {
-            window.__sonicPicker({
+            window.__bizzPicker({
               icon: '${opts.pickerIcon}',
               label: '${opts.pickerLabel}',
               apiUrl: '${opts.pickerApiUrl}',
@@ -142,9 +142,9 @@ export function getTinyMcePluginScript(opts: {
         // Inject chip CSS into editor iframe
         editor.on('init', function() {
           var doc = editor.getDoc();
-          if (doc && !doc.getElementById('sonic-chip-css')) {
+          if (doc && !doc.getElementById('bizz-chip-css')) {
             var style = doc.createElement('style');
-            style.id = 'sonic-chip-css';
+            style.id = 'bizz-chip-css';
             style.textContent = '${chipCSS}';
             doc.head.appendChild(style);
           }
@@ -156,12 +156,12 @@ export function getTinyMcePluginScript(opts: {
           var h = b.innerHTML, changed = false;
           var r = h.replace(/\\{([a-z0-9_]+)\\}/g, function(m,k) {
             changed = true;
-            return '<span class="sonic-var-chip" contenteditable="false" data-var-key="'+k+'">'+k+'</span>';
+            return '<span class="bizz-var-chip" contenteditable="false" data-var-key="'+k+'">'+k+'</span>';
           });
           r = r.replace(/\\[\\[(\\w+)([^\\]]*?)\\]\\]/g, function(m,n,p) {
             changed = true;
             var pa = p.trim() ? ' data-sc-params="'+p.trim().replace(/"/g,'&amp;quot;')+'"' : '';
-            return '<span class="sonic-sc-chip" contenteditable="false" data-sc-name="'+n+'"'+pa+'>'+n+(p.trim()?' '+p.trim():'')+'</span>';
+            return '<span class="bizz-sc-chip" contenteditable="false" data-sc-name="'+n+'"'+pa+'>'+n+(p.trim()?' '+p.trim():'')+'</span>';
           });
           if (changed) editor.undoManager.ignore(function(){ b.innerHTML = r; });
         });
@@ -169,23 +169,23 @@ export function getTinyMcePluginScript(opts: {
         // Chip→token on save
         editor.on('GetContent', function(e) {
           if (e.format !== 'html') return;
-          e.content = e.content.replace(/<span[^>]*class="[^"]*sonic-var-chip[^"]*"[^>]*data-var-key="([^"]*)"[^>]*>[^<]*<\\/span>/g,
+          e.content = e.content.replace(/<span[^>]*class="[^"]*bizz-var-chip[^"]*"[^>]*data-var-key="([^"]*)"[^>]*>[^<]*<\\/span>/g,
             function(m,k){ return '{'+k+'}'; });
-          e.content = e.content.replace(/<span[^>]*class="[^"]*sonic-sc-chip[^"]*"[^>]*data-sc-name="([^"]*)"[^>]*(?:data-sc-params="([^"]*)")?[^>]*>[^<]*<\\/span>/g,
+          e.content = e.content.replace(/<span[^>]*class="[^"]*bizz-sc-chip[^"]*"[^>]*data-sc-name="([^"]*)"[^>]*(?:data-sc-params="([^"]*)")?[^>]*>[^<]*<\\/span>/g,
             function(m,n,p){ return '[['+n+(p?' '+p:'')+']]'; });
         });
 
-        console.log('[SonicJS] TinyMCE plugin "${pluginName}" registered via PluginManager');
+        console.log('[BizzCMS] TinyMCE plugin "${pluginName}" registered via PluginManager');
       });
 
-      window.__sonicTmcePlugins.push('${pluginName}');
-      window.__sonicTmceButtons.push('${opts.buttonName}');
-      console.log('[SonicJS] PluginManager.add("${pluginName}") — done');
+      window.__bizzTmcePlugins.push('${pluginName}');
+      window.__bizzTmceButtons.push('${opts.buttonName}');
+      console.log('[BizzCMS] PluginManager.add("${pluginName}") — done');
       return true;
     }
 
     // Try immediately (tinymce CDN may already be loaded)
-    if (!registerSonicPlugin()) {
+    if (!registerBizzCMSPlugin()) {
       // Poll until tinymce is available (CDN loads async)
       // The plugin MUST be registered before tinymce.init() is called.
       // Server-side injection in index.ts adds our plugin name to the plugins array,
@@ -193,9 +193,9 @@ export function getTinyMcePluginScript(opts: {
       var attempts = 0;
       var iv = setInterval(function() {
         attempts++;
-        if (registerSonicPlugin() || attempts > 200) {
+        if (registerBizzCMSPlugin() || attempts > 200) {
           clearInterval(iv);
-          if (attempts > 200) console.warn('[SonicJS] Gave up waiting for tinymce to register ${pluginName}');
+          if (attempts > 200) console.warn('[BizzCMS] Gave up waiting for tinymce to register ${pluginName}');
         }
       }, 25);
     }

@@ -522,7 +522,7 @@ adminApiRoutes.get('/users/search-html', async (c) => {
       const safeEmail = (u.email as string).replace(/'/g, "\\'")
       return `<button type="button"
         class="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 border-b border-white/10 last:border-0 flex justify-between items-center"
-        onclick="sonicSelectUser('${fieldId}','${u.id}','${safeName}')"
+        onclick="bizzSelectUser('${fieldId}','${u.id}','${safeName}')"
       ><span class="font-medium text-white">${name}</span><span class="text-xs text-zinc-400 ml-2">${u.email}</span></button>`
     }).join('')
     return c.html(items)

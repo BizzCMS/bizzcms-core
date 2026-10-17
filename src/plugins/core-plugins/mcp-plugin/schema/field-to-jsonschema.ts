@@ -1,11 +1,11 @@
 /**
- * Convert a SonicJS collection schema (FieldConfig graph) into JSON Schema for MCP
+ * Convert a BizzCMS collection schema (FieldConfig graph) into JSON Schema for MCP
  * tool input definitions.
  *
  * Collections are `FieldConfig[]`-shaped (`types/collection-config.ts`), not Zod, so
  * there is nothing to feed `zod-to-json-schema`. A collection's `schema` is already
  * close to JSON Schema (`{ type:'object', properties, required }`); this maps each
- * field's SonicJS `FieldType` to its JSON Schema equivalent and, for write tools,
+ * field's BizzCMS `FieldType` to its JSON Schema equivalent and, for write tools,
  * strips server-managed system fields.
  */
 

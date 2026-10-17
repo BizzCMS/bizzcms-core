@@ -1,7 +1,7 @@
 /**
  * Templates Module Exports
  *
- * Reusable HTML template components for SonicJS
+ * Reusable HTML template components for BizzCMS
  */
 
 // Form templates

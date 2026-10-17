@@ -73,7 +73,7 @@ export function renderTenantsList(data: TenantsListPageData): string {
       <div class="mb-8 flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-semibold text-zinc-950 dark:text-white">Tenants</h1>
-          <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Isolated content spaces served from this SonicJS instance. The sidebar switcher and this page control which tenant the admin operates on.</p>
+          <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Isolated content spaces served from this BizzCMS instance. The sidebar switcher and this page control which tenant the admin operates on.</p>
         </div>
         <a href="/admin/tenants/new" data-new-tenant class="inline-flex items-center gap-2 rounded-lg bg-zinc-950 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200">
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/></svg>
@@ -104,7 +104,7 @@ export function renderTenantsList(data: TenantsListPageData): string {
     </div>`
 
   return renderAdminLayoutCatalyst({
-    title: 'Tenants - SonicJS',
+    title: 'Tenants - BizzCMS',
     pageTitle: 'Tenants',
     currentPath: '/admin/tenants',
     user: data.user,
@@ -126,7 +126,7 @@ export function renderTenantsInactive(data: { user?: { name: string; email: stri
     </div>`
 
   return renderAdminLayoutCatalyst({
-    title: 'Tenants - SonicJS',
+    title: 'Tenants - BizzCMS',
     pageTitle: 'Tenants',
     currentPath: '/admin/tenants',
     user: data.user,

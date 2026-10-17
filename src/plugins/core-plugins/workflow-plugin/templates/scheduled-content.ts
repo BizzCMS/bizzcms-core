@@ -399,7 +399,7 @@ export function renderScheduledContent(data: ScheduledContentData): string {
   `
 
   return renderAdminLayout({
-    title: 'Scheduled Content - SonicJS AI',
+    title: 'Scheduled Content - BizzCMS',
     pageTitle: 'Scheduled Content',
     content,
     user: data.user,

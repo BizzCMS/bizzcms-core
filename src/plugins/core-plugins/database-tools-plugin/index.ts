@@ -11,7 +11,7 @@ export const databaseToolsPlugin = definePlugin({
   name: 'Database Tools',
   description: 'Database management tools including truncate, backup, and validation.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS', email: 'admin@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'admin@bizzcms.com' },
 
   // Admin route mounted by app.ts at /admin/database-tools — no register fn needed
   // here since the page lives at the existing createDatabaseToolsAdminRoutes() call.

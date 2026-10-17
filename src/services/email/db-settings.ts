@@ -1,7 +1,7 @@
 /**
  * Admin-UI email settings (DB-backed)
  *
- * SonicJS lets operators configure email from the admin Plugins page, which
+ * BizzCMS lets operators configure email from the admin Plugins page, which
  * persists an API key + from-identity as JSON in `plugins.settings` for the
  * `email` plugin. Historically each send path read this row itself (OTP, the
  * test button) and called Resend directly. The provider-agnostic EmailService

@@ -51,7 +51,7 @@ export interface TwoFactorPolicy {
 export const TWO_FACTOR_PLUGIN_ID = 'two-factor-auth'
 
 export const TWO_FACTOR_POLICY_DEFAULTS: Readonly<TwoFactorPolicy> = Object.freeze({
-  issuer: 'SonicJS',
+  issuer: 'BizzCMS',
   maxFailedAttempts: 5,
   lockoutDurationSeconds: 900,
   backupCodeCount: 10,
@@ -102,7 +102,7 @@ export function normalizeTwoFactorPolicy(raw: unknown): TwoFactorPolicy {
  * Read the policy from the plugin's settings document, once per isolate.
  *
  * Plugin settings are document-backed (`type_id = 'plugin'`, `slug = <plugin id>`) — the
- * legacy `plugins` table does not exist on greenfield SonicJS v3. This reads the same place
+ * legacy `plugins` table does not exist on greenfield BizzCMS v3. This reads the same place
  * `PluginService.updatePluginSettings()` writes, so the admin form is not save-nowhere chrome.
  */
 export async function loadTwoFactorPolicy(db: D1Database): Promise<TwoFactorPolicy> {

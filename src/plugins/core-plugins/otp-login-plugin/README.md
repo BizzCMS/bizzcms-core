@@ -1,6 +1,6 @@
 # OTP Login Plugin
 
-Passwordless authentication for SonicJS via email one-time codes (OTP). Users sign in by entering a 6-digit code sent to their email - no password required.
+Passwordless authentication for BizzCMS via email one-time codes (OTP). Users sign in by entering a 6-digit code sent to their email - no password required.
 
 ## Features
 
@@ -10,7 +10,7 @@ Passwordless authentication for SonicJS via email one-time codes (OTP). Users si
 - ✅ **Brute Force Protection**: Max 3 attempts per code
 - ✅ **Auto Expiry**: Codes expire after 10 minutes (configurable)
 - ✅ **Mobile Friendly**: Easy to copy/paste codes
-- ✅ **Email Integration**: Uses SonicJS email plugin
+- ✅ **Email Integration**: Uses BizzCMS email plugin
 
 ## API Endpoints
 
@@ -57,7 +57,7 @@ Settings available in Admin → Plugins → OTP Login → Settings:
 
 ### Session / JWT TTL
 
-The JWT issued by `/auth/otp/verify` uses the core SonicJS session config:
+The JWT issued by `/auth/otp/verify` uses the core BizzCMS session config:
 
 - `JWT_EXPIRES_IN` — TTL for the issued JWT and cookie. Accepts seconds or a
   duration string like `30d`, `12h`, `3600s`. Defaults to **30 days**.

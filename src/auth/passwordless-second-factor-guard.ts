@@ -46,14 +46,14 @@
  *     verification, out of scope here. The exposure requires an attacker who owns the inbox AND a
  *     link requested in the same 15-minute window in which the victim enrolled.
  *   - `/auth/email-otp/verify-email`. It mints a session only under
- *     `emailVerification.autoSignInAfterVerification`, which SonicJS does not set; guarding it
+ *     `emailVerification.autoSignInAfterVerification`, which BizzCMS does not set; guarding it
  *     unconditionally would 403 legitimate email verification for enrolled users. **If that
  *     option is ever enabled, add the path to {@link COMPLETE_PATHS}.**
  *   - `/auth/email-otp/request-password-reset`, `/forget-password/email-otp`,
  *     `/email-otp/reset-password`. Password reset does not mint a session in this codebase — it
  *     redirects to the login page, where the second factor is enforced.
  *
- * Bespoke SonicJS session-minting endpoints under `/auth/` (the `otp-login` and
+ * Bespoke BizzCMS session-minting endpoints under `/auth/` (the `otp-login` and
  * `oauth-providers` plugins) are mounted BEFORE this catch-all and so never reach it; they call
  * {@link hasVerifiedSecondFactor} directly in their own handlers.
  */
@@ -198,7 +198,7 @@ async function readBody(
 /**
  * Resolve every user id whose email matches, case-insensitively.
  *
- * `COLLATE NOCASE` deliberately, even though it forgoes `idx_auth_user_email`: SonicJS's own
+ * `COLLATE NOCASE` deliberately, even though it forgoes `idx_auth_user_email`: BizzCMS's own
  * login routes lowercase before storing, but BA's magic-link endpoint passes `ctx.body.email`
  * through verbatim, so a case-sensitive compare could MISS an enrolled account — and a miss here
  * is a bypass, not a slow query. These endpoints are low-traffic by nature.

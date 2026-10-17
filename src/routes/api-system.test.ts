@@ -180,7 +180,7 @@ describe('API System Routes', () => {
       const json = await res.json()
 
       expect(res.status).toBe(200)
-      expect(json.name).toBe('SonicJS')
+      expect(json.name).toBe('BizzCMS')
       expect(json.version).toBe('2.0.0')
       expect(json.description).toBeDefined()
       expect(json.endpoints).toBeDefined()

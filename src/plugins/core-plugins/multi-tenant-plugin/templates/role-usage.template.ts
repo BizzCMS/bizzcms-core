@@ -47,7 +47,7 @@ export function renderRoleUsage(data: RoleUsagePageData): string {
     </div>`
 
   return renderAdminLayoutCatalyst({
-    title: `Role usage - ${data.roleName} - SonicJS`,
+    title: `Role usage - ${data.roleName} - BizzCMS`,
     pageTitle: 'Role usage',
     currentPath: '/admin/tenants',
     user: data.user,

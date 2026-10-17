@@ -2,13 +2,13 @@
  * Integration tests for plugin route mounting through the real app factory.
  *
  * These assert against Hono's `app.routes` introspection rather than live
- * requests: `createSonicJSApp()` builds synchronously (DB-dependent bootstrap
+ * requests: `createBizzCMSApp()` builds synchronously (DB-dependent bootstrap
  * runs per-request via middleware), so construction needs no Workers bindings,
  * and the registered route table is the precise thing we want to verify.
  */
 import { describe, it, expect } from 'vitest'
 import { Hono } from 'hono'
-import { createSonicJSApp } from '../../app'
+import { createBizzCMSApp } from '../../app'
 import type { Plugin } from '../../plugins/types'
 
 /** Build a custom user plugin that mounts a public route. */
@@ -23,7 +23,7 @@ function makeCustomPlugin(): Plugin {
 }
 
 /** Collect the set of registered route paths for easy assertions. */
-function routePaths(app: ReturnType<typeof createSonicJSApp>): string[] {
+function routePaths(app: ReturnType<typeof createBizzCMSApp>): string[] {
   return app.routes.map((r) => r.path)
 }
 
@@ -31,9 +31,9 @@ function hasPathPrefix(paths: string[], prefix: string): boolean {
   return paths.some((p) => p === prefix || p.startsWith(prefix + '/') || p.startsWith(prefix))
 }
 
-describe('plugin mounting via createSonicJSApp', () => {
+describe('plugin mounting via createBizzCMSApp', () => {
   it('mounts a user plugin passed through plugins.register (no core edits)', () => {
-    const app = createSonicJSApp({ plugins: { register: [makeCustomPlugin()] } })
+    const app = createBizzCMSApp({ plugins: { register: [makeCustomPlugin()] } })
     const paths = routePaths(app)
     expect(hasPathPrefix(paths, '/api/custom-test')).toBe(true)
   })
@@ -41,7 +41,7 @@ describe('plugin mounting via createSonicJSApp', () => {
   it('mounts global-variables and shortcodes routes (regression for #758)', () => {
     // These plugins declare routes via PluginBuilder.addRoute() but were never
     // mounted in app.ts before this fix — their endpoints 404'd in production.
-    const app = createSonicJSApp()
+    const app = createBizzCMSApp()
     const paths = routePaths(app)
     expect(hasPathPrefix(paths, '/api/global-variables')).toBe(true)
     expect(hasPathPrefix(paths, '/admin/global-variables')).toBe(true)
@@ -63,13 +63,13 @@ describe('plugin mounting via createSonicJSApp', () => {
         },
       ],
     }
-    const app = createSonicJSApp({ plugins: { register: [adminPlugin] } })
+    const app = createBizzCMSApp({ plugins: { register: [adminPlugin] } })
     expect(hasPathPrefix(routePaths(app), '/admin/my-feature')).toBe(true)
   })
 
   describe('disableAll', () => {
     it('mounts no plugin routes (core or user) when disableAll is true', () => {
-      const app = createSonicJSApp({
+      const app = createBizzCMSApp({
         plugins: { disableAll: true, register: [makeCustomPlugin()] },
       })
       const paths = routePaths(app)
@@ -84,7 +84,7 @@ describe('plugin mounting via createSonicJSApp', () => {
     it('still mounts core framework routes when disableAll is true', () => {
       // disableAll turns off *plugins*, not the core CMS. Core admin/api routes
       // must remain.
-      const app = createSonicJSApp({ plugins: { disableAll: true } })
+      const app = createBizzCMSApp({ plugins: { disableAll: true } })
       const paths = routePaths(app)
       expect(hasPathPrefix(paths, '/admin/content')).toBe(true)
       expect(hasPathPrefix(paths, '/api')).toBe(true)
@@ -95,7 +95,7 @@ describe('plugin mounting via createSonicJSApp', () => {
       // off does NOT stop enrolled users being challenged at sign-in. While the challenge page was
       // mounted by the plugin, those users were redirected to `/auth/two-factor` and got a 404 —
       // locked out of an app that still demanded their second factor. Core mounts it now.
-      const paths = routePaths(createSonicJSApp({ plugins: { disableAll: true } }))
+      const paths = routePaths(createBizzCMSApp({ plugins: { disableAll: true } }))
       expect(hasPathPrefix(paths, '/auth/two-factor')).toBe(true)
       // The ENROLMENT surface is plugin-owned and must still be gone: disabling plugins should
       // stop new enrolments without stranding existing ones.

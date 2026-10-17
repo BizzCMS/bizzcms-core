@@ -7,10 +7,10 @@ describe('renderOtpEmail', () => {
       user: { firstName: 'Marco', email: 'marco@example.com' },
       code: '482915',
       expiresAt: Date.UTC(2026, 4, 13, 15, 5, 0),
-      siteName: 'SonicJS',
+      siteName: 'BizzCMS',
     })
 
-    expect(out.subject).toBe('Your SonicJS login code: 482915')
+    expect(out.subject).toBe('Your BizzCMS login code: 482915')
     expect(out.html).toContain('482915')
     expect(out.text).toContain('482915')
     expect(out.text).toMatch(/for your eyes only/i)
@@ -22,7 +22,7 @@ describe('renderOtpEmail', () => {
       user: { email: 'x@y.z' },
       code: '<script>',
       expiresAt: 0,
-      siteName: 'SonicJS',
+      siteName: 'BizzCMS',
     })
 
     expect(out.html).not.toContain('<script>')
@@ -34,11 +34,11 @@ describe('renderOtpEmail', () => {
       user: { email: 'x@y.z' },
       code: '482915',
       expiresAt: 0,
-      siteName: '<b>SonicJS</b>',
+      siteName: '<b>BizzCMS</b>',
     })
 
-    expect(out.html).not.toContain('<b>SonicJS</b>')
-    expect(out.html).toContain('&lt;b&gt;SonicJS&lt;/b&gt;')
+    expect(out.html).not.toContain('<b>BizzCMS</b>')
+    expect(out.html).toContain('&lt;b&gt;BizzCMS&lt;/b&gt;')
   })
 
   it('applies the shared layout (color-scheme meta + hook classes)', () => {
@@ -46,7 +46,7 @@ describe('renderOtpEmail', () => {
       user: { email: 'x@y.z' },
       code: '482915',
       expiresAt: 0,
-      siteName: 'SonicJS',
+      siteName: 'BizzCMS',
     })
     expect(out.html).toContain('color-scheme')
     expect(out.html).toContain('email-card')

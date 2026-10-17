@@ -23,7 +23,7 @@ const HOOK_CLASSES = [
 describe('renderEmailLayout', () => {
   function baseInput() {
     return {
-      siteName: 'SonicJS',
+      siteName: 'BizzCMS',
       preheader: 'Inbox preview text',
       heading: 'Hello',
       bodyHtml: '<p class="email-text" style="margin:0;">Body content here</p>',
@@ -110,7 +110,7 @@ describe('renderEmailLayout', () => {
   it('renders a default footer mentioning the siteName when footerSlot omitted', () => {
     const out = renderEmailLayout(baseInput())
     expect(out).toContain('email-footer')
-    expect(out).toContain('Sent by SonicJS')
+    expect(out).toContain('Sent by BizzCMS')
   })
 
   it('honors caller-provided footerSlot', () => {
@@ -119,7 +119,7 @@ describe('renderEmailLayout', () => {
       footerSlot: '<p class="email-footer" data-marker="custom">custom footer</p>',
     })
     expect(out).toContain('data-marker="custom"')
-    expect(out).not.toContain('Sent by SonicJS')
+    expect(out).not.toContain('Sent by BizzCMS')
   })
 })
 

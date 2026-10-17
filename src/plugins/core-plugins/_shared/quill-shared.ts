@@ -6,7 +6,7 @@
  * for their Quill editor integrations.
  *
  * Each plugin calls getSharedQuillSetup() to get the shared <style> + <script>
- * block. At runtime, a `window.__sonicQuillShared` flag ensures these are only
+ * block. At runtime, a `window.__bizzQuillShared` flag ensures these are only
  * initialized once even if both plugins inject their scripts.
  */
 
@@ -16,7 +16,7 @@
  */
 export function getSharedQuillStyles(): string {
   return `
-    <style id="sonic-quill-shared-styles">
+    <style id="bizz-quill-shared-styles">
       /* Variable chip styles */
       .ql-variable-blot {
         display: inline-flex;
@@ -58,7 +58,7 @@ export function getSharedQuillStyles(): string {
       .ql-shortcode-blot::after { content: ']]'; opacity: 0.5; }
 
       /* Picker dropdown styles */
-      .sonic-picker-dropdown {
+      .bizz-picker-dropdown {
         position: fixed;
         z-index: 10000;
         background: #18181b;
@@ -71,14 +71,14 @@ export function getSharedQuillStyles(): string {
         display: flex;
         flex-direction: column;
       }
-      .sonic-picker-dropdown .picker-header {
+      .bizz-picker-dropdown .picker-header {
         padding: 10px 12px;
         border-bottom: 1px solid #27272a;
         display: flex;
         align-items: center;
         gap: 8px;
       }
-      .sonic-picker-dropdown .picker-header input {
+      .bizz-picker-dropdown .picker-header input {
         flex: 1;
         background: #09090b;
         border: 1px solid #3f3f46;
@@ -88,13 +88,13 @@ export function getSharedQuillStyles(): string {
         color: #e4e4e7;
         outline: none;
       }
-      .sonic-picker-dropdown .picker-header input:focus { border-color: #3b82f6; }
-      .sonic-picker-dropdown .picker-body {
+      .bizz-picker-dropdown .picker-header input:focus { border-color: #3b82f6; }
+      .bizz-picker-dropdown .picker-body {
         overflow-y: auto;
         max-height: 280px;
         padding: 4px;
       }
-      .sonic-picker-dropdown .picker-category {
+      .bizz-picker-dropdown .picker-category {
         padding: 6px 10px 2px;
         font-size: 10px;
         font-weight: 600;
@@ -102,7 +102,7 @@ export function getSharedQuillStyles(): string {
         letter-spacing: 0.05em;
         color: #71717a;
       }
-      .sonic-picker-dropdown .picker-item {
+      .bizz-picker-dropdown .picker-item {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -111,13 +111,13 @@ export function getSharedQuillStyles(): string {
         cursor: pointer;
         transition: background 0.1s;
       }
-      .sonic-picker-dropdown .picker-item:hover { background: #27272a; }
-      .sonic-picker-dropdown .picker-item .item-key {
+      .bizz-picker-dropdown .picker-item:hover { background: #27272a; }
+      .bizz-picker-dropdown .picker-item .item-key {
         font-family: ui-monospace, monospace;
         font-size: 13px;
         font-weight: 500;
       }
-      .sonic-picker-dropdown .picker-item .item-value {
+      .bizz-picker-dropdown .picker-item .item-value {
         font-size: 12px;
         color: #71717a;
         max-width: 140px;
@@ -125,7 +125,7 @@ export function getSharedQuillStyles(): string {
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-      .sonic-picker-dropdown .picker-empty {
+      .bizz-picker-dropdown .picker-empty {
         padding: 20px;
         text-align: center;
         color: #52525b;
@@ -150,7 +150,7 @@ export function getSharedQuillStyles(): string {
  * - insertBlot helper
  * - enhanceQuillEditors polling framework
  *
- * Idempotent: checks window.__sonicQuillShared before running.
+ * Idempotent: checks window.__bizzQuillShared before running.
  * Each plugin adds its own blot registration + toolbar button AFTER this.
  */
 export function getSharedQuillScript(): string {
@@ -158,7 +158,7 @@ export function getSharedQuillScript(): string {
     <script>
     (function() {
       // ─── Shared setup: only runs once even if both plugins inject ──────
-      if (window.__sonicQuillShared) return;
+      if (window.__bizzQuillShared) return;
 
       function waitForQuill(cb) {
         if (typeof Quill !== 'undefined') return cb();
@@ -204,7 +204,7 @@ export function getSharedQuillScript(): string {
         function showPicker(opts) {
           closePicker();
           var dropdown = document.createElement('div');
-          dropdown.className = 'sonic-picker-dropdown';
+          dropdown.className = 'bizz-picker-dropdown';
           var rect = opts.button.getBoundingClientRect();
           dropdown.style.top = (rect.bottom + 4) + 'px';
           dropdown.style.left = rect.left + 'px';
@@ -287,14 +287,14 @@ export function getSharedQuillScript(): string {
         }
 
         // Expose shared utilities for plugin-specific scripts
-        window.__sonicQuillShared = {
+        window.__bizzQuillShared = {
           showPicker: showPicker,
           closePicker: closePicker,
           insertBlot: insertBlot,
           ready: true
         };
 
-        console.log('[SonicJS] Shared Quill infrastructure initialized');
+        console.log('[BizzCMS] Shared Quill infrastructure initialized');
       });
     })();
     </script>`;
@@ -302,7 +302,7 @@ export function getSharedQuillScript(): string {
 
 /**
  * Returns the polling script that enhances Quill editors with custom buttons.
- * Each plugin registers its own enhancer function on window.__sonicQuillEnhancers[],
+ * Each plugin registers its own enhancer function on window.__bizzQuillEnhancers[],
  * and this shared poller runs them all.
  *
  * Idempotent: only one poller runs.
@@ -311,24 +311,24 @@ export function getQuillEnhancerPollerScript(): string {
   return `
     <script>
     (function() {
-      if (window.__sonicQuillPollerStarted) return;
-      window.__sonicQuillPollerStarted = true;
-      window.__sonicQuillEnhancers = window.__sonicQuillEnhancers || [];
+      if (window.__bizzQuillPollerStarted) return;
+      window.__bizzQuillPollerStarted = true;
+      window.__bizzQuillEnhancers = window.__bizzQuillEnhancers || [];
 
       function runEnhancers() {
         var enhanced = 0;
         document.querySelectorAll('.quill-editor-container').forEach(function(container) {
           var editorDiv = container.querySelector('.quill-editor');
           if (!editorDiv || !editorDiv.quillInstance) return;
-          if (container.dataset.sonicEnhanced === 'true') return;
+          if (container.dataset.bizzEnhanced === 'true') return;
 
           var quill = editorDiv.quillInstance;
           var toolbar = container.querySelector('.ql-toolbar');
           if (!toolbar) return;
 
           // Run all registered enhancers
-          window.__sonicQuillEnhancers.forEach(function(fn) {
-            try { fn(container, quill, toolbar); } catch(e) { console.error('[SonicJS] Enhancer error:', e); }
+          window.__bizzQuillEnhancers.forEach(function(fn) {
+            try { fn(container, quill, toolbar); } catch(e) { console.error('[BizzCMS] Enhancer error:', e); }
           });
 
           // Shared: serialize blots back to token syntax on text-change
@@ -365,7 +365,7 @@ export function getQuillEnhancerPollerScript(): string {
           });
           if (changed) quill.setContents({ ops: newOps }, Quill.sources.SILENT);
 
-          container.dataset.sonicEnhanced = 'true';
+          container.dataset.bizzEnhanced = 'true';
           enhanced++;
         });
         return enhanced;
@@ -376,13 +376,13 @@ export function getQuillEnhancerPollerScript(): string {
       function pollAndEnhance() {
         attempts++;
         // Wait for shared infra
-        if (!window.__sonicQuillShared || !window.__sonicQuillShared.ready) {
+        if (!window.__bizzQuillShared || !window.__bizzQuillShared.ready) {
           if (attempts < 60) setTimeout(pollAndEnhance, 200);
           return;
         }
         var count = runEnhancers();
         if (count > 0) {
-          console.log('[SonicJS] Enhanced ' + count + ' Quill editor(s)');
+          console.log('[BizzCMS] Enhanced ' + count + ' Quill editor(s)');
         } else if (attempts < 30) {
           setTimeout(pollAndEnhance, 200);
         }

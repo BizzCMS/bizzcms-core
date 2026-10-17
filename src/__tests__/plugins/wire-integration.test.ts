@@ -9,11 +9,11 @@
  * via dispatchHookEvent() — the same helper production routes use — fires subscribed
  * handlers. It uses a separate minimal Hono app (no middleware stack that would need
  * a real DB) to call dispatchHookEvent, which reads from the global singleton set up
- * by createSonicJSApp.
+ * by createBizzCMSApp.
  */
 import { describe, it, expect, afterEach } from 'vitest'
 import { Hono } from 'hono'
-import { createSonicJSApp } from '../../app'
+import { createBizzCMSApp } from '../../app'
 import type { Plugin } from '../../plugins/types'
 import {
   hasHookSystem,
@@ -46,15 +46,15 @@ function makeObservablePlugin(state: { booted: boolean; hookRan: boolean; payloa
   } as Plugin
 }
 
-describe('live plugin wiring via createSonicJSApp', () => {
+describe('live plugin wiring via createBizzCMSApp', () => {
   it('publishes a hook system singleton at construction', () => {
-    createSonicJSApp()
+    createBizzCMSApp()
     expect(hasHookSystem()).toBe(true)
   })
 
   it('runs onBoot and subscribes hooks after the first request', async () => {
     const state = { booted: false, hookRan: false }
-    const app = createSonicJSApp({ plugins: { register: [makeObservablePlugin(state)] } })
+    const app = createBizzCMSApp({ plugins: { register: [makeObservablePlugin(state)] } })
 
     // Before any request, wiring has not run.
     expect(state.booted).toBe(false)
@@ -70,7 +70,7 @@ describe('live plugin wiring via createSonicJSApp', () => {
    * helper production routes use — NOT via a manual hooks.dispatch() call in the test.
    * This ensures the test fails if dispatchHookEvent is removed from the real path.
    *
-   * Architecture: createSonicJSApp initializes the global hook-system singleton and
+   * Architecture: createBizzCMSApp initializes the global hook-system singleton and
    * subscribes plugin hooks during the wiring phase. A separate minimal Hono app
    * then calls dispatchHookEvent which reads from that same global singleton —
    * exactly what production routes do. This avoids needing a real DB (which the full
@@ -80,7 +80,7 @@ describe('live plugin wiring via createSonicJSApp', () => {
     const state = { booted: false, hookRan: false, payload: undefined as unknown }
 
     // Step 1: initialize the hook system and subscribe the observer plugin's hooks.
-    const app = createSonicJSApp({ plugins: { register: [makeObservablePlugin(state)] } })
+    const app = createBizzCMSApp({ plugins: { register: [makeObservablePlugin(state)] } })
     await app.request('/health') // triggers the lazy wiring pass
     expect(state.booted).toBe(true)
     expect(state.hookRan).toBe(false) // no dispatch yet
@@ -116,7 +116,7 @@ describe('live plugin wiring via createSonicJSApp', () => {
         bootCount++
       },
     } as Plugin
-    const app = createSonicJSApp({ plugins: { register: [plugin] } })
+    const app = createBizzCMSApp({ plugins: { register: [plugin] } })
 
     await app.request('/health')
     await app.request('/health')
@@ -127,7 +127,7 @@ describe('live plugin wiring via createSonicJSApp', () => {
 
   it('does not wire plugins when disableAll is true', async () => {
     const state = { booted: false, hookRan: false }
-    const app = createSonicJSApp({
+    const app = createBizzCMSApp({
       plugins: { disableAll: true, register: [makeObservablePlugin(state)] },
     })
 

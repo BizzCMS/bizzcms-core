@@ -1,7 +1,7 @@
 /**
  * Provider-agnostic email types
  *
- * The whole point of this layer: a SonicJS app sends mail through one
+ * The whole point of this layer: a BizzCMS app sends mail through one
  * `EmailService` chokepoint, and the *transport* is a swappable `EmailProvider`.
  * Built-ins ship for Resend and SendGrid, but a developer can drop in any
  * implementation of `EmailProvider` (Postmark, SES, an internal relay, a mock in

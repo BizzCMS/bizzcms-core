@@ -1,18 +1,18 @@
 /**
- * Node / Bun server adapter for self-hosted SonicJS deployments.
+ * Node / Bun server adapter for self-hosted BizzCMS deployments.
  *
  * Wires the local SQLite DB driver, filesystem storage, in-memory KV, and
- * optional sync queue into a SonicJS app so it can run outside Cloudflare Workers.
+ * optional sync queue into a BizzCMS app so it can run outside Cloudflare Workers.
  *
  * ## Quick start (Node.js)
  *
  * ```ts
  * import { serve } from '@hono/node-server'
- * import { createSonicJSApp } from 'bizzcms-core'
- * import { createNodeSonicApp } from 'bizzcms-core/adapters'
+ * import { createBizzCMSApp } from 'bizzcms-core'
+ * import { createNodeBizzCMSApp } from 'bizzcms-core/adapters'
  *
- * const app = createSonicJSApp({ ... })
- * const adapted = await createNodeSonicApp(app, {
+ * const app = createBizzCMSApp({ ... })
+ * const adapted = await createNodeBizzCMSApp(app, {
  *   dbPath: './data/sonicjs.db',
  *   storagePath: './data/media',
  * })
@@ -22,11 +22,11 @@
  * ## Quick start (Bun)
  *
  * ```ts
- * import { createSonicJSApp } from 'bizzcms-core'
- * import { createNodeSonicApp } from 'bizzcms-core/adapters'
+ * import { createBizzCMSApp } from 'bizzcms-core'
+ * import { createNodeBizzCMSApp } from 'bizzcms-core/adapters'
  *
- * const app = createSonicJSApp({ ... })
- * const adapted = await createNodeSonicApp(app, {
+ * const app = createBizzCMSApp({ ... })
+ * const adapted = await createNodeBizzCMSApp(app, {
  *   dbPath: './data/sonicjs.db',
  *   storagePath: './data/media',
  * })
@@ -75,24 +75,24 @@ export interface NodeAdapterOptions {
 }
 
 // ---------------------------------------------------------------------------
-// createNodeSonicApp
+// createNodeBizzCMSApp
 // ---------------------------------------------------------------------------
 
 /**
- * Wrap a SonicJS Hono app with local adapter bindings injected before any
- * SonicJS middleware (bootstrap, auth, routes) executes.
+ * Wrap a BizzCMS Hono app with local adapter bindings injected before any
+ * BizzCMS middleware (bootstrap, auth, routes) executes.
  *
- * The injection MUST run first — SonicJS's bootstrap middleware accesses
+ * The injection MUST run first — BizzCMS's bootstrap middleware accesses
  * `c.env.DB` on the very first request. If we append the middleware after
- * `createSonicJSApp()` we'd lose the ordering race. Instead we wrap the
- * sonicApp in a fresh Hono instance that injects env first, then routes
- * all requests through the sonicApp.
+ * `createBizzCMSApp()` we'd lose the ordering race. Instead we wrap the
+ * bizzApp in a fresh Hono instance that injects env first, then routes
+ * all requests through the bizzApp.
  *
- * @param sonicApp The SonicJS Hono app created by `createSonicJSApp()`.
+ * @param bizzApp The BizzCMS Hono app created by `createBizzCMSApp()`.
  * @param options  Adapter configuration.
  */
-export async function createNodeSonicApp<E extends { Bindings: Record<string, unknown> }>(
-  sonicApp: Hono<E>,
+export async function createNodeBizzCMSApp<E extends { Bindings: Record<string, unknown> }>(
+  bizzApp: Hono<E>,
   options: NodeAdapterOptions = {},
 ): Promise<Hono<E>> {
   const {
@@ -117,8 +117,8 @@ export async function createNodeSonicApp<E extends { Bindings: Record<string, un
     ...extraEnv,
   }
 
-  // Create a wrapper app so our env injection runs BEFORE sonicApp's middlewares.
-  // Hono executes middleware in registration order; appending to sonicApp directly
+  // Create a wrapper app so our env injection runs BEFORE bizzApp's middlewares.
+  // Hono executes middleware in registration order; appending to bizzApp directly
   // would put injection AFTER bootstrap (too late). Wrapping gives us first-in ordering.
   const wrapper = new Hono<E>()
 
@@ -144,8 +144,8 @@ export async function createNodeSonicApp<E extends { Bindings: Record<string, un
     return next()
   })
 
-  // Mount sonicApp under root — routes, middleware, and everything it registered.
-  wrapper.route('/', sonicApp)
+  // Mount bizzApp under root — routes, middleware, and everything it registered.
+  wrapper.route('/', bizzApp)
 
   return wrapper as unknown as Hono<E>
 }

@@ -16,7 +16,7 @@
 import type { HookSystemLike } from './hooks/typed-hooks'
 import type { HookEventName } from './hooks/catalog'
 import { isKnownHookEvent } from './hooks/catalog'
-import { HOOK_CAPABILITY_MAP, SonicCapabilityError } from './capabilities'
+import { HOOK_CAPABILITY_MAP, BizzCMSCapabilityError } from './capabilities'
 import { topoSort } from './topo-sort'
 
 /** A hook subscription declared by a plugin (the legacy `hooks[]` shape). */
@@ -131,7 +131,7 @@ export async function wireRegisteredPlugins(
       if (plugin.capabilities !== undefined && isKnownHookEvent(hook.name)) {
         const requiredCap = HOOK_CAPABILITY_MAP[hook.name as HookEventName]
         if (requiredCap && !plugin.capabilities.includes(requiredCap)) {
-          const capErr = new SonicCapabilityError(requiredCap, name)
+          const capErr = new BizzCMSCapabilityError(requiredCap, name)
           if (options.strict) {
             result.errors.push({ plugin: name, phase: 'subscribe', error: capErr })
           } else {

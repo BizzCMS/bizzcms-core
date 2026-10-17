@@ -36,7 +36,7 @@ export const authUser = sqliteTable('auth_user', {
   // enrol again. Plain integer rather than `mode: 'boolean'` — Better Auth never writes this
   // column, so nothing needs the boolean round-trip and the SQL reads/writes 0/1 directly.
   twoFactorRequired: integer('two_factor_required').notNull().default(0),
-  // timestamp_ms so Better Auth's Date values round-trip; matches SonicJS's
+  // timestamp_ms so Better Auth's Date values round-trip; matches BizzCMS's
   // existing Date.now() (ms) convention for these columns.
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),

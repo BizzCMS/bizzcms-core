@@ -15,7 +15,7 @@
 
 ## Architecture: Custom RAG with Vectorize
 
-Unlike traditional approaches that require manual dashboard configuration, this plugin implements a **Custom RAG (Retrieval-Augmented Generation)** pipeline that works automatically for any SonicJS user.
+Unlike traditional approaches that require manual dashboard configuration, this plugin implements a **Custom RAG (Retrieval-Augmented Generation)** pipeline that works automatically for any BizzCMS user.
 
 ### Components:
 
@@ -29,7 +29,7 @@ Unlike traditional approaches that require manual dashboard configuration, this 
 ### Step 1: Run Setup Script
 
 ```bash
-cd my-sonicjs-app
+cd my-bizzcms-app
 bash ../packages/core/src/plugins/core-plugins/ai-search-plugin/setup/vectorize-setup.sh
 ```
 
@@ -243,7 +243,7 @@ vs. Cloudflare AI Search: $5/mo for 5,000 docs
 1. **Check Vectorize setup**:
    ```bash
    npx wrangler vectorize list
-   # Should show: sonicjs-search
+   # Should show: bizzcms-search
    ```
 
 2. **Check bindings in wrangler.toml**:
@@ -253,7 +253,7 @@ vs. Cloudflare AI Search: $5/mo for 5,000 docs
    
    [[vectorize]]
    binding = "VECTORIZE"
-   index_name = "sonicjs-search"
+   index_name = "bizzcms-search"
    ```
 
 3. **Restart dev server**:
@@ -415,7 +415,7 @@ No migration needed - this IS the implementation!
 
 - [Cloudflare Vectorize](https://developers.cloudflare.com/vectorize/)
 - [Workers AI](https://developers.cloudflare.com/workers-ai/)
-- [SonicJS AI Search](./README.md)
+- [BizzCMS Search](./README.md)
 
 ### Issues:
 
@@ -438,7 +438,7 @@ No migration needed - this IS the implementation!
 
 ✅ **Custom RAG with Vectorize delivers**:
 - No manual dashboard setup
-- Works for ANY SonicJS user
+- Works for ANY BizzCMS user
 - Full semantic search capabilities
 - Excellent performance
 - Cost-effective (likely FREE)

@@ -1,7 +1,7 @@
 /**
  * OAuth Providers Plugin
  *
- * OAuth2/OIDC social login support for SonicJS.
+ * OAuth2/OIDC social login support for BizzCMS.
  * Phase 1: Core OAuth2 authorization code flow with GitHub and Google providers.
  *
  * Routes:
@@ -422,7 +422,7 @@ export const oauthProvidersPlugin = definePlugin({
   name: 'OAuth Providers',
   description: 'OAuth2/OIDC social login with GitHub, Google, and more.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   register(app) {
     app.route('/auth/oauth', buildOauthApi())

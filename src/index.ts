@@ -1,7 +1,7 @@
 /**
- * @sonicjs/core - Main Entry Point
+ * @bizzcms/core - Main Entry Point
  *
- * Core framework for SonicJS headless CMS
+ * Core framework for BizzCMS headless CMS
  * Built for Cloudflare's edge platform with TypeScript
  *
  * Phase 2 Migration Status:
@@ -20,8 +20,11 @@
 // Main Application API (Phase 2 Week 1)
 // ============================================================================
 
-export { createSonicJSApp, setupCoreMiddleware, setupCoreRoutes } from './app'
-export type { SonicJSConfig, SonicJSApp, Bindings, Variables, BootIsolateFn } from './app'
+export { createBizzCMSApp, setupCoreMiddleware, setupCoreRoutes } from './app'
+export type { BizzCMSConfig, BizzCMSApp, Bindings, Variables, BootIsolateFn } from './app'
+// Old names from the upstream engine, kept so existing sites keep compiling (deprecated: use the BizzCMS names).
+export { createBizzCMSApp as createSonicJSApp } from './app'
+export type { BizzCMSConfig as SonicJSConfig, BizzCMSApp as SonicJSApp } from './app'
 
 // Plugin cron surface + trigger codegen
 export {
@@ -287,7 +290,7 @@ export {
   // Metrics
   metricsTracker,
   // Version
-  SONICJS_VERSION,
+  BIZZCMS_VERSION,
   getCoreVersion,
 } from './utils'
 
@@ -394,7 +397,7 @@ export const VERSION = packageJson.version
 // ============================================================================
 
 /**
- * This is a work-in-progress package being extracted from the main SonicJS codebase.
+ * This is a work-in-progress package being extracted from the main BizzCMS codebase.
  *
  * Current Phase: 2 (Core Module Migration)
  * Current Week: 1 (Types, Utils, Database)

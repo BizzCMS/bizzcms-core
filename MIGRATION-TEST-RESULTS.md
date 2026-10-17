@@ -14,7 +14,7 @@
 - **Test Server**: http://localhost:62344
 - **Package**: `bizzcms-core` v2.0.0-alpha.3
 - **Testing Method**: npm link (local development)
-- **Database**: D1 (sonicjs-test2-db)
+- **Database**: D1 (bizzcms-test2-db)
 
 ---
 
@@ -178,7 +178,7 @@ The local development workflow is working perfectly:
 
 2. **Test Project Linked**: ✅
    ```bash
-   cd /Users/lane/Dev/temp/sonicjs-test2
+   cd /Users/lane/Dev/temp/bizzcms-test2
    npm link bizzcms-core
    ```
 

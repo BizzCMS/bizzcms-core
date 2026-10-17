@@ -14,7 +14,7 @@ export const menuPlugin = definePlugin({
   name: 'Menu Manager',
   description: 'Admin sidebar navigation manager.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   register(app) {
     app.route('/admin/menu', adminMenuRoutes as any)

@@ -51,7 +51,7 @@ export function renderInvitationJoinPage(data: InvitationJoinPageData): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${e(title)} - SonicJS</title>
+  <title>${e(title)} - BizzCMS</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -63,7 +63,7 @@ export function renderInvitationJoinPage(data: InvitationJoinPageData): string {
         <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
         </svg>
-        SonicJS
+        BizzCMS
       </a>
     </div>
 
@@ -99,7 +99,7 @@ export function renderInvitationJoinPage(data: InvitationJoinPageData): string {
       </form>
     </div>
 
-    ${data.version ? `<p class="text-center text-xs text-zinc-600 mt-6">SonicJS ${e(data.version)}</p>` : ''}
+    ${data.version ? `<p class="text-center text-xs text-zinc-600 mt-6">BizzCMS ${e(data.version)}</p>` : ''}
   </div>
 </body>
 </html>`
@@ -111,7 +111,7 @@ export function renderInvitationErrorPage(message: string, version?: string): st
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invalid Invitation - SonicJS</title>
+  <title>Invalid Invitation - BizzCMS</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -127,7 +127,7 @@ export function renderInvitationErrorPage(message: string, version?: string): st
         Go to sign in
       </a>
     </div>
-    ${version ? `<p class="text-xs text-zinc-600 mt-6">SonicJS ${escapeHtml(version)}</p>` : ''}
+    ${version ? `<p class="text-xs text-zinc-600 mt-6">BizzCMS ${escapeHtml(version)}</p>` : ''}
   </div>
 </body>
 </html>`

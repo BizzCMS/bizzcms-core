@@ -11,7 +11,7 @@ import { JSONScalar } from './scalars'
 
 export const DocumentType = new GraphQLObjectType({
   name: 'Document',
-  description: 'A SonicJS document (any type).',
+  description: 'A BizzCMS document (any type).',
   fields: () => ({
     id:             { type: new GraphQLNonNull(GraphQLString) },
     rootId:         { type: new GraphQLNonNull(GraphQLString) },

@@ -114,14 +114,14 @@ export const userProfilesPlugin = definePlugin({
   name: 'User Profiles',
   description: 'Configurable custom profile fields for users.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   register(app) {
     app.route('/api/user-profiles', api)
   },
 
-  activate: async () => console.info('[SonicJS] User Profiles plugin activated'),
-  deactivate: async () => console.info('[SonicJS] User Profiles plugin deactivated'),
+  activate: async () => console.info('[BizzCMS] User Profiles plugin activated'),
+  deactivate: async () => console.info('[BizzCMS] User Profiles plugin deactivated'),
 })
 
 export function createUserProfilesPlugin() {

@@ -1,16 +1,16 @@
 /**
- * Better Auth configuration for SonicJS — via the better-auth-cloudflare shim.
+ * Better Auth configuration for BizzCMS — via the better-auth-cloudflare shim.
  *
  * A fresh auth instance is built per request (Workers lifecycle). The existing
- * `auth_user` table is used as Better Auth's user model. Legacy SonicJS PBKDF2
+ * `auth_user` table is used as Better Auth's user model. Legacy BizzCMS PBKDF2
  * hashes are verified and transparently upgraded to scrypt on first login. KV
  * (CACHE_KV) is used as session secondary storage so getSession does not hit D1
  * on every request.
  *
- * Extend via config.auth.extendBetterAuth in createSonicJSApp() to add social
+ * Extend via config.auth.extendBetterAuth in createBizzCMSApp() to add social
  * providers, magic link, 2FA, etc.
  */
-/** Send an email via the SonicJS email plugin (Resend).
+/** Send an email via the BizzCMS email plugin (Resend).
  *  Loads apiKey/fromEmail/fromName from the `plugins` table at runtime.
  *  Falls back to console.log when the plugin is unconfigured (local dev). */
 async function sendViaEmailPlugin(
@@ -32,7 +32,7 @@ async function sendViaEmailPlugin(
           method: 'POST',
           headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            from: `${fromName ?? 'SonicJS'} <${fromEmail}>`,
+            from: `${fromName ?? 'BizzCMS'} <${fromEmail}>`,
             to: [to],
             subject,
             html,
@@ -60,7 +60,7 @@ import { getTwoFactorPolicy } from './two-factor-settings'
 import type { Bindings } from '../app'
 
 /**
- * Verify a password against a SonicJS legacy PBKDF2 hash:
+ * Verify a password against a BizzCMS legacy PBKDF2 hash:
  *   pbkdf2:<iterations>:<saltHex>:<hashHex>   (PBKDF2-SHA256, 256-bit)
  * Mirrors AuthManager.verifyPassword in middleware/auth.ts.
  */
@@ -82,7 +82,7 @@ async function verifyLegacyPbkdf2(password: string, stored: string): Promise<boo
 }
 
 /**
- * Build the default Better Auth options used by SonicJS (through the CF shim).
+ * Build the default Better Auth options used by BizzCMS (through the CF shim).
  * Exported so apps can extend via config.auth.extendBetterAuth.
  */
 export function getDefaultAuthOptions(env: Bindings, requestBaseURL?: string) {
@@ -91,7 +91,7 @@ export function getDefaultAuthOptions(env: Bindings, requestBaseURL?: string) {
   return {
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL || requestBaseURL,
-    appName: 'SonicJS',
+    appName: 'BizzCMS',
     ...withCloudflare(
       {
         autoDetectIpAddress: true,
@@ -111,7 +111,7 @@ export function getDefaultAuthOptions(env: Bindings, requestBaseURL?: string) {
         emailAndPassword: {
           enabled: true,
           autoSignIn: true,
-          // Transparent migration of SonicJS legacy PBKDF2 hashes: verify against
+          // Transparent migration of BizzCMS legacy PBKDF2 hashes: verify against
           // the old format on login, then re-hash to scrypt and persist. No
           // mass-rehash, no forced password resets.
           password: {
@@ -136,7 +136,7 @@ export function getDefaultAuthOptions(env: Bindings, requestBaseURL?: string) {
           modelName: 'auth_user',
           // Field-mapping values are Drizzle *property keys* (camelCase), which
           // already match Better Auth's defaults for emailVerified/createdAt/
-          // updatedAt. Only `image` differs (SonicJS uses `avatar`).
+          // updatedAt. Only `image` differs (BizzCMS uses `avatar`).
           fields: {
             image: 'avatar',
           },
@@ -201,7 +201,7 @@ export function getDefaultAuthOptions(env: Bindings, requestBaseURL?: string) {
     ),
 
     // ── Phase 4: BA-native login methods ─────────────────────────────────────
-    // Magic-link and Email-OTP replace the standalone SonicJS plugins that
+    // Magic-link and Email-OTP replace the standalone BizzCMS plugins that
     // minted JWT cookies. Social providers replace the bespoke oauth-providers
     // plugin. All are gated on the relevant env vars / email service config
     // so they activate only when configured.
@@ -215,7 +215,7 @@ export function getDefaultAuthOptions(env: Bindings, requestBaseURL?: string) {
             env.DB, email,
             'Your sign-in link',
             `<div style="font-family:sans-serif;max-width:600px">
-              <h2>Sign in to SonicJS</h2>
+              <h2>Sign in to BizzCMS</h2>
               <p>Click the link below to sign in. Expires in 15 minutes.</p>
               <p><a href="${url}" style="background:#465FFF;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none">Sign in</a></p>
               <p style="color:#666;font-size:12px">Or copy: ${url}</p>
@@ -336,7 +336,7 @@ export function getDefaultAuthOptions(env: Bindings, requestBaseURL?: string) {
 
     // ── Phase 4: Social providers ─────────────────────────────────────────
     // Activated when the relevant env vars are set. Replaces the bespoke
-    // oauth-providers SonicJS plugin. Set via wrangler secret put / .dev.vars.
+    // oauth-providers BizzCMS plugin. Set via wrangler secret put / .dev.vars.
     socialProviders: {
       ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
         ? { github: { clientId: env.GITHUB_CLIENT_ID, clientSecret: env.GITHUB_CLIENT_SECRET } }
@@ -368,4 +368,4 @@ export function createAuth(env: Bindings, extendBetterAuth?: ExtendBetterAuth, r
   return betterAuth(options as Parameters<typeof betterAuth>[0])
 }
 
-export type SonicJSAuth = ReturnType<typeof createAuth>
+export type BizzCMSAuth = ReturnType<typeof createAuth>

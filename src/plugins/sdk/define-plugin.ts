@@ -121,7 +121,7 @@ export interface DefinedPluginContext<Caps extends readonly Capability[] = reado
   /**
    * Capability-gated services. With a const-narrowed `Caps`, `ctx.cap.email` is
    * typed `EmailService` only when `'email:send'` was declared (else `never`),
-   * and throws `SonicCapabilityError` at runtime if accessed undeclared.
+   * and throws `BizzCMSCapabilityError` at runtime if accessed undeclared.
    */
   cap: CapabilityContext<Caps>
   /** Runtime bindings, when available (absent during construction). */
@@ -142,7 +142,7 @@ export interface DefinePluginInput<Caps extends readonly Capability[] = readonly
    */
   version: string
   /**
-   * A semver range expressing which SonicJS core versions this plugin supports
+   * A semver range expressing which BizzCMS core versions this plugin supports
    * (e.g. `'^3.0.0'` or `'>=3.1.0 <4.0.0'`). Checked against the running
    * core version at registration; a mismatch logs a compatibility warning but
    * does not block activation (plugins remain resilient by default).
@@ -229,7 +229,7 @@ export interface DefinedPlugin {
   id: string
   name: string
   version: string
-  /** The semver range for SonicJS core compatibility declared by the author. */
+  /** The semver range for BizzCMS core compatibility declared by the author. */
   sonicjsVersionRange?: string
   description?: string
   author?: { name: string; email?: string; url?: string }
@@ -259,7 +259,7 @@ export interface DefinedPlugin {
   }
   /** Marker so tooling/tests can detect a v3-defined plugin. */
   // eslint-disable-next-line @typescript-eslint/naming-convention -- intentional internal marker
-  readonly __sonicV3: true
+  readonly __bizzV3: true
 }
 
 /**
@@ -307,7 +307,7 @@ export function definePlugin<const Caps extends readonly Capability[] = readonly
     )
   }
 
-  // SonicJS core compatibility range check.
+  // BizzCMS core compatibility range check.
   if (input.sonicjsVersionRange) {
     const coreVersion = getCoreVersion()
     if (!semverSatisfies(coreVersion, input.sonicjsVersionRange)) {
@@ -380,12 +380,12 @@ export function definePlugin<const Caps extends readonly Capability[] = readonly
     configSchema: input.configSchema,
     settingsTabContent: input.settingsTabContent,
     // eslint-disable-next-line @typescript-eslint/naming-convention -- intentional internal marker
-    __sonicV3: true,
+    __bizzV3: true,
   }
 }
 
 /** True if `plugin` was produced by {@link definePlugin}. */
 export function isDefinedPlugin(plugin: unknown): plugin is DefinedPlugin {
   // eslint-disable-next-line @typescript-eslint/naming-convention -- intentional internal marker
-  return !!plugin && typeof plugin === 'object' && (plugin as { __sonicV3?: unknown }).__sonicV3 === true
+  return !!plugin && typeof plugin === 'object' && (plugin as { __bizzV3?: unknown }).__bizzV3 === true
 }

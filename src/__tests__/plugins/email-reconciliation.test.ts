@@ -18,7 +18,7 @@ describe('emailReconciliationPlugin (definePlugin output)', () => {
   it('is a valid DefinedPlugin with the expected metadata', () => {
     expect(emailReconciliationPlugin.id).toBe('email-reconciliation')
     expect(emailReconciliationPlugin.version).toMatch(/^\d+\.\d+\.\d+/)
-    expect(emailReconciliationPlugin.__sonicV3).toBe(true)
+    expect(emailReconciliationPlugin.__bizzV3).toBe(true)
   })
 
   it('declares email:send and db:email_log capabilities', () => {

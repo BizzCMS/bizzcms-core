@@ -6,8 +6,8 @@ import { PluginBootstrapService } from "../services/plugin-bootstrap";
 import { bootstrapDocumentTypes, autoRegisterCollectionDocumentTypes, bootstrapDefaultContent } from "../services/document-types-seed";
 import { getHookSystem, hasHookSystem } from "../plugins/hooks/hook-system-singleton";
 import { getTelemetryService } from "../services/telemetry-service"
-import { SONICJS_VERSION } from "../utils/version";
-import type { SonicJSConfig } from "../app";
+import { BIZZCMS_VERSION } from "../utils/version";
+import type { BizzCMSConfig } from "../app";
 import { setBranchLabel } from "../templates/layouts/admin-layout-catalyst.template";
 
 type Bindings = {
@@ -23,9 +23,9 @@ type Bindings = {
 let bootstrapComplete = false;
 
 // KV key for cross-isolate bootstrap state. Version-keyed so a code deployment
-// (SONICJS_VERSION bump) automatically invalidates the cached flag and forces
+// (BIZZCMS_VERSION bump) automatically invalidates the cached flag and forces
 // a fresh full bootstrap on the next cold start.
-const BOOTSTRAP_KV_KEY = () => `_sonicjs_bootstrap_v${SONICJS_VERSION}`
+const BOOTSTRAP_KV_KEY = () => `_sonicjs_bootstrap_v${BIZZCMS_VERSION}`
 
 /**
  * Verify security-critical environment configuration at startup.
@@ -67,7 +67,7 @@ export function verifySecurityConfig(env: Bindings): void {
   const isProduction = env.ENVIRONMENT === "production";
 
   for (const warning of warnings) {
-    console.warn(`[SonicJS Security] ${warning}`);
+    console.warn(`[BizzCMS Security] ${warning}`);
   }
 
   if (isProduction) {
@@ -77,7 +77,7 @@ export function verifySecurityConfig(env: Bindings): void {
       !env.JWT_SECRET || env.JWT_SECRET.includes("change-in-production");
     if (hasCritical) {
       throw new Error(
-        "[SonicJS Security] CRITICAL: Production deployment is missing a secure JWT_SECRET. " +
+        "[BizzCMS Security] CRITICAL: Production deployment is missing a secure JWT_SECRET. " +
           "Set it via `wrangler secret put JWT_SECRET` before deploying."
       );
     }
@@ -108,7 +108,7 @@ export function isBetterAuthSessionPath(path: string): boolean {
  * Bootstrap middleware that ensures system initialization
  * Runs once per worker instance
  */
-export function bootstrapMiddleware(config: SonicJSConfig = {}, allPlugins?: Array<{ name?: string; id?: string }>) {
+export function bootstrapMiddleware(config: BizzCMSConfig = {}, allPlugins?: Array<{ name?: string; id?: string }>) {
   return async (c: Context<{ Bindings: Bindings; Variables: { hookSystem?: unknown } }>, next: Next) => {
     // Attach the hook system to the request BEFORE any heavy bootstrap work
     // runs, so anything that emits a hook during bootstrap (cron cold starts,
@@ -371,7 +371,7 @@ export function bootstrapMiddleware(config: SonicJSConfig = {}, allPlugins?: Arr
           active_plugins: activePlugins,
           field_type_histogram: fieldTypeHistogram,
           doc_total: docTotal,
-          sonicjs_version: SONICJS_VERSION,
+          sonicjs_version: BIZZCMS_VERSION,
           deploy_url: deployUrl,
         });
       } catch { /* silent — telemetry must never break boot */ }

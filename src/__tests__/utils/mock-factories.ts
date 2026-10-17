@@ -194,7 +194,7 @@ export interface SentEmail {
 
 /**
  * A recording EmailProvider that captures every send in `.sent`.
- * Pass it to `createSonicJSApp({ email: { provider: recordingEmailProvider() } })`.
+ * Pass it to `createBizzCMSApp({ email: { provider: recordingEmailProvider() } })`.
  */
 export function makeMockEmailProvider(): EmailProvider & { sent: SentEmail[] } {
   return {

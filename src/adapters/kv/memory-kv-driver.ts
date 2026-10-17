@@ -7,7 +7,7 @@
  * Usage:
  *   import { createMemoryKVDriver } from 'bizzcms-core/adapters'
  *   const kv = createMemoryKVDriver()
- *   // Pass `kv` anywhere SonicJS expects a KVNamespace (CACHE_KV binding).
+ *   // Pass `kv` anywhere BizzCMS expects a KVNamespace (CACHE_KV binding).
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'

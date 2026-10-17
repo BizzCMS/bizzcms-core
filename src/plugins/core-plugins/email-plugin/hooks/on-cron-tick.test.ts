@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { onCronTick } from './on-cron-tick'
-import type { SonicHookContext } from '../../../sdk/types'
+import type { BizzCMSHookContext } from '../../../sdk/types'
 
 interface MockEnv {
   DB?: unknown
@@ -8,12 +8,12 @@ interface MockEnv {
   EMAIL_API_TOKEN?: string
 }
 
-function makeCtx(env: MockEnv): SonicHookContext {
+function makeCtx(env: MockEnv): BizzCMSHookContext {
   return {
     env: env as never,
     pluginId: 'email',
     plugins: { byId: new Map(), ordered: [] },
-  } as unknown as SonicHookContext
+  } as unknown as BizzCMSHookContext
 }
 
 // Well-known empty envelope shape for the zone-scoped dataset (the only

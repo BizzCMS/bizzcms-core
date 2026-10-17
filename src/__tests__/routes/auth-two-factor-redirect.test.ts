@@ -2,7 +2,7 @@
  * The `twoFactorRedirect` branch in both login handlers.
  *
  * Better Auth answers a pending second factor with HTTP **200** and `{twoFactorRedirect:true}` —
- * no `user`, no `token`, and it deletes the session it had just created. Both SonicJS login
+ * no `user`, no `token`, and it deletes the session it had just created. Both BizzCMS login
  * handlers read BA's outcome through `if (!baRes.ok)`, so before this branch existed a CORRECT
  * password fell straight through into the success path:
  *

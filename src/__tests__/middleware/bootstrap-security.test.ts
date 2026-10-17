@@ -94,7 +94,7 @@ describe('verifySecurityConfig', () => {
         CORS_ORIGINS: 'https://mysite.com',
         ENVIRONMENT: 'production',
       })
-    }).toThrow('[SonicJS Security] CRITICAL')
+    }).toThrow('[BizzCMS Security] CRITICAL')
   })
 
   it('should throw in production when JWT_SECRET is the default value', () => {
@@ -106,7 +106,7 @@ describe('verifySecurityConfig', () => {
         CORS_ORIGINS: 'https://mysite.com',
         ENVIRONMENT: 'production',
       })
-    }).toThrow('[SonicJS Security] CRITICAL')
+    }).toThrow('[BizzCMS Security] CRITICAL')
   })
 
   it('should NOT throw in production when JWT_SECRET is properly set', () => {

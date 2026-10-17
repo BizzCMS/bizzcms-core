@@ -32,7 +32,7 @@ function buildClaudeJson(endpointUrl: string): string {
   return JSON.stringify(
     {
       mcpServers: {
-        sonicjs: {
+        bizzcms: {
           type: 'http',
           url: endpointUrl,
           headers: { Authorization: 'Bearer sk_YOUR_API_KEY' },
@@ -48,7 +48,7 @@ function buildCursorJson(endpointUrl: string): string {
   return JSON.stringify(
     {
       mcpServers: {
-        sonicjs: {
+        bizzcms: {
           url: endpointUrl,
           headers: { Authorization: 'Bearer sk_YOUR_API_KEY' },
         },

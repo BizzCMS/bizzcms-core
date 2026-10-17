@@ -1,7 +1,7 @@
 /**
  * TenantService — Better Auth `auth_tenant` table is the tenant registry (organization plugin).
  *
- * Tenants are rows in `auth_tenant` (BA organization model, modelName remapped). SonicJS-specific
+ * Tenants are rows in `auth_tenant` (BA organization model, modelName remapped). BizzCMS-specific
  * resolution fields (`status`, `domain`, `notes`) are BA `additionalFields` on the same table.
  * Content ownership stays on `documents.tenant_id` (slug) — `countDocumentsForTenant` reads it to
  * fail-close deletes. Timestamps are ms (auth-table convention; BA writes Date → timestamp_ms).

@@ -531,7 +531,7 @@ export const shortcodesPlugin = definePlugin({
   name: 'Shortcodes',
   description: 'Registered shortcode functions for dynamic content with [[shortcode]] syntax.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Community', email: 'community@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'community@bizzcms.com' },
   capabilities: ['hooks.content:subscribe'],
 
   register(app) {
@@ -636,12 +636,12 @@ export function getShortcodeBlotScript(): string {
         Quill.register(ShortcodeBlot, true);
 
         // ─── Register toolbar enhancer ─────────────────────────────
-        window.__sonicQuillEnhancers = window.__sonicQuillEnhancers || [];
-        window.__sonicQuillEnhancers.push(function(container, quill, toolbar) {
+        window.__bizzQuillEnhancers = window.__bizzQuillEnhancers || [];
+        window.__bizzQuillEnhancers.push(function(container, quill, toolbar) {
           // Skip if already added
           if (toolbar.querySelector('.ql-insertShortcode')) return;
 
-          var shared = window.__sonicQuillShared;
+          var shared = window.__bizzQuillShared;
           var scBtn = document.createElement('button');
           scBtn.className = 'ql-insertShortcode';
           scBtn.type = 'button';
@@ -695,7 +695,7 @@ export function getShortcodeBlotScript(): string {
 
 export function getShortcodeTinyMceScript(): string {
   return getSharedTinyMceStyles() + getTinyMcePluginScript({
-    buttonName: 'sonicInsertSC',
+    buttonName: 'bizzInsertSC',
     buttonText: '\\u26A1 SC',
     buttonTooltip: 'Insert Shortcode',
     pickerIcon: '\\u26A1',
@@ -718,7 +718,7 @@ export function getShortcodeTinyMceScript(): string {
       } catch(ex) {}
       var label = item.name + (params ? ' ' + params : '');
       var pa = params ? ' data-sc-params="' + params.replace(/"/g, '&amp;quot;') + '"' : '';
-      editor.insertContent('<span class="sonic-sc-chip" contenteditable="false" data-sc-name="' + item.name + '"' + pa + '>' + label + '</span>&nbsp;');
+      editor.insertContent('<span class="bizz-sc-chip" contenteditable="false" data-sc-name="' + item.name + '"' + pa + '>' + label + '</span>&nbsp;');
     }`,
   });
 }

@@ -14,7 +14,7 @@ export function renderLoginPage(data: LoginPageData, demoLoginActive: boolean = 
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Login - SonicJS AI</title>
+      <title>Login - BizzCMS</title>
       <link rel="icon" type="image/svg+xml" href="/favicon.svg">
       <script src="https://unpkg.com/htmx.org@2.0.3"></script>
       <script src="https://cdn.tailwindcss.com"></script>
@@ -149,8 +149,8 @@ export function renderLoginPage(data: LoginPageData, demoLoginActive: boolean = 
             const passwordInput = document.getElementById('password');
 
             if (emailInput && passwordInput) {
-              emailInput.value = 'admin@sonicjs.com';
-              passwordInput.value = 'sonicjs!';
+              emailInput.value = 'admin@bizzcms.com';
+              passwordInput.value = 'bizzcms!';
 
               // Add visual indication that form is prefilled (only if not already present)
               const form = emailInput.closest('form');

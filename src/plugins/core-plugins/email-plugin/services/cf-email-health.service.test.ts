@@ -62,20 +62,20 @@ describe('CfEmailHealthService.getHealth()', () => {
   it('returns cached result when KV has a valid entry (CF API not called)', async () => {
     const fetchSpy = mockFetch([])
     const cachedHealth = {
-      status: 'ok', emailRoutingEnabled: true, emailRoutingZone: 'sonicjs.com',
+      status: 'ok', emailRoutingEnabled: true, emailRoutingZone: 'bizzcms.com',
       destinations: [], checkedAt: Date.now(),
     }
     const kv = makeKv(cachedHealth)
     const svc = new CfEmailHealthService(MOCK_TOKEN, MOCK_ACCOUNT, MOCK_ZONE, kv)
     const result = await svc.getHealth()
     expect(result.status).toBe('ok')
-    expect(result.emailRoutingZone).toBe('sonicjs.com')
+    expect(result.emailRoutingZone).toBe('bizzcms.com')
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
   it('calls CF API on KV miss and writes result to KV with 60s TTL', async () => {
     mockFetch([
-      { ok: true, body: { success: true, result: { name: 'sonicjs.com', enabled: true } } },
+      { ok: true, body: { success: true, result: { name: 'bizzcms.com', enabled: true } } },
       { ok: true, body: { success: true, result: [] } },
     ])
     const kv = makeKv(null) // cache miss
@@ -108,7 +108,7 @@ describe('CfEmailHealthService.getHealth()', () => {
 
   it('correctly maps verified: null → verified: false on destination addresses', async () => {
     mockFetch([
-      { ok: true, body: { success: true, result: { name: 'sonicjs.com', enabled: true } } },
+      { ok: true, body: { success: true, result: { name: 'bizzcms.com', enabled: true } } },
       {
         ok: true, body: {
           success: true, result: [
@@ -128,7 +128,7 @@ describe('CfEmailHealthService.getHealth()', () => {
 
   it('returns status: error when destinations CF API returns non-2xx', async () => {
     mockFetch([
-      { ok: true, body: { success: true, result: { name: 'sonicjs.com', enabled: true } } },
+      { ok: true, body: { success: true, result: { name: 'bizzcms.com', enabled: true } } },
       { ok: false, body: {} }, // destinations 403
     ])
     const svc = new CfEmailHealthService(MOCK_TOKEN, MOCK_ACCOUNT, MOCK_ZONE, undefined)
@@ -139,7 +139,7 @@ describe('CfEmailHealthService.getHealth()', () => {
 
   it('returns status: error when destinations CF API returns success: false', async () => {
     mockFetch([
-      { ok: true, body: { success: true, result: { name: 'sonicjs.com', enabled: true } } },
+      { ok: true, body: { success: true, result: { name: 'bizzcms.com', enabled: true } } },
       { ok: true, body: { success: false, result: null, errors: [{ message: 'Forbidden' }] } },
     ])
     const svc = new CfEmailHealthService(MOCK_TOKEN, MOCK_ACCOUNT, MOCK_ZONE, undefined)

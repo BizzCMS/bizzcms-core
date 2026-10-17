@@ -719,7 +719,7 @@ export function renderCollectionFormPage(data: CollectionFormData): string {
               <p class="text-xs text-zinc-500 dark:text-zinc-400">
                 This is a code-based representation of ${data.display_name ? `the ${escapeHtml(data.display_name)}` : 'this'} collection.
                 Learn more about
-                <a href="https://sonicjs.com/collections" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">
+                <a href="https://bizzcms.com/collections" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">
                   collections here.
                 </a>
               </p>

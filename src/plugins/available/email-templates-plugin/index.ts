@@ -7,7 +7,7 @@ export const emailTemplatesPlugin = {
   displayName: 'Email Templates',  
   description: 'Comprehensive email template management with themes, Markdown content, variable substitution, and delivery tracking via SendGrid',
   version: '1.0.0',
-  author: 'SonicJS Team',
+  author: 'BizzCMS',
   isCore: false,
   isActive: false, // Not registered in plugin system - see core-plugins/email-plugin instead
   status: 'inactive', // Plugin starts as inactive

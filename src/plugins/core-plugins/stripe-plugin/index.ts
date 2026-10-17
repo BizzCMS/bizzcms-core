@@ -14,7 +14,7 @@ export const stripePlugin = definePlugin({
   name: 'Stripe',
   description: 'Stripe subscription management with webhook handling, checkout sessions, and subscription gating.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team' },
+  author: { name: 'BizzCMS' },
 
   register(app) {
     app.route('/admin/plugins/stripe', stripeAdminRoutes as any)

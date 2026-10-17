@@ -155,7 +155,7 @@ export const mediaPlugin = definePlugin({
   name: 'Media',
   description: 'Core media management and processing plugin.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
   dependencies: ['core-auth'],
   capabilities: ['hooks.content:subscribe'],
 

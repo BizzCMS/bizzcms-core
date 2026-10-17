@@ -4,8 +4,8 @@
   "description": "View and restore content version history for types with versioning enabled.",
   "version": "1.0.0",
   "author": {
-    "name": "SonicJS Team",
-    "email": "team@sonicjs.com"
+    "name": "BizzCMS",
+    "email": "team@bizzcms.com"
   },
   "category": "content",
   "icon": "clock",

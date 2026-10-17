@@ -3,7 +3,7 @@
   "name": "Email",
   "version": "1.0.0",
   "description": "Send transactional emails via Cloudflare Email Service. Subscribes to auth lifecycle events (welcome, password reset, password changed) and runs a 5-minute reconciliation cron against the CF GraphQL Activity Log.",
-  "author": "SonicJS Team",
+  "author": "BizzCMS",
   "homepage": "https://github.com/sonicjs/sonicjs-ai",
   "repository": "https://github.com/sonicjs/sonicjs-ai",
   "license": "MIT",

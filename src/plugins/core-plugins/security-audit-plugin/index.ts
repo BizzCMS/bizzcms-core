@@ -14,7 +14,7 @@ export const securityAuditPlugin = definePlugin({
   name: 'Security Audit',
   description: 'Security event logging, brute-force detection, and analytics dashboard.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team' },
+  author: { name: 'BizzCMS' },
 
   register(app) {
     app.route('/admin/plugins/security-audit', securityAuditAdminRoutes as any)

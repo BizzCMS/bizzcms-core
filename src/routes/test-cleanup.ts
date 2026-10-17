@@ -87,7 +87,7 @@ app.post('/test-cleanup', async (c: Context) => {
 
     // ── Test users + their child rows ───────────────────────────────────────
     const TEST_USER =
-      "email != 'admin@sonicjs.com' AND (email LIKE '%test%' OR email LIKE '%example.com%')"
+      "email != 'admin@bizzcms.com' AND (email LIKE '%test%' OR email LIKE '%example.com%')"
     await tryDelete(db, `DELETE FROM auth_api_tokens WHERE user_id IN (SELECT id FROM auth_user WHERE ${TEST_USER})`)
     deletedCount += await tryDelete(db, `DELETE FROM auth_user WHERE ${TEST_USER}`)
 
@@ -132,7 +132,7 @@ app.post('/test-cleanup/users', async (c: Context) => {
     const deletedCount = await tryDelete(
       db,
       `DELETE FROM auth_user
-       WHERE email != 'admin@sonicjs.com'
+       WHERE email != 'admin@bizzcms.com'
          AND (email LIKE '%test%' OR email LIKE '%example.com%' OR first_name = 'Test')`,
     )
     return c.json({ success: true, deletedCount, message: 'Test users cleaned up successfully' })
@@ -255,14 +255,14 @@ app.post('/test-seed-defaults', async (c: Context) => {
 
     const id = `blog-post-welcome-seed`
     const dataJson = JSON.stringify({
-      title: 'Welcome to SonicJS',
+      title: 'Welcome to BizzCMS',
       slug: WELCOME_SLUG,
-      excerpt: 'Start building with the Cloudflare-native SonicJS CMS.',
-      content: '<p>Welcome to SonicJS. This first post confirms your default blog content is ready.</p>',
-      author: 'SonicJS',
+      excerpt: 'Start building with the Cloudflare-native BizzCMS CMS.',
+      content: '<p>Welcome to BizzCMS. This first post confirms your default blog content is ready.</p>',
+      author: 'BizzCMS',
       status: 'published',
       difficulty: 'beginner',
-      tags: 'welcome,sonicjs',
+      tags: 'welcome,bizzcms',
     })
 
     await db
@@ -273,7 +273,7 @@ app.post('/test-seed-defaults', async (c: Context) => {
             created_at, updated_at, deleted_at)
          VALUES (?, ?, 1, ?, 'default', 'default', ?, ?, ?, 0, 1, 1, 1, 'published', ?, ?, NULL)`,
       )
-      .bind(id, id, BLOG_POST_TYPE, WELCOME_SLUG, 'Welcome to SonicJS', dataJson, nowSec, nowSec)
+      .bind(id, id, BLOG_POST_TYPE, WELCOME_SLUG, 'Welcome to BizzCMS', dataJson, nowSec, nowSec)
       .run()
 
     return c.json({ success: true, action: 'created', message: 'Welcome post created' })

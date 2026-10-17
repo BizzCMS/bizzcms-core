@@ -1,5 +1,5 @@
 /**
- * GraphQL Plugin — exposes SonicJS documents via a GraphQL API.
+ * GraphQL Plugin — exposes BizzCMS documents via a GraphQL API.
  *
  * Opt-in: add `graphqlPlugin()` to the app's `plugins.register` array.
  * Endpoint: POST /graphql (execute queries/mutations)
@@ -22,9 +22,9 @@ export function graphqlPlugin(options: GraphqlConfigInput = {}) {
     id: 'graphql',
     version: '1.0.0',
     name: 'GraphQL API',
-    description: 'Exposes SonicJS documents via a GraphQL endpoint with optional GraphiQL playground.',
+    description: 'Exposes BizzCMS documents via a GraphQL endpoint with optional GraphiQL playground.',
     sonicjsVersionRange: '^3.0.0',
-    author: { name: 'SonicJS Team' },
+    author: { name: 'BizzCMS' },
 
     register(app) {
       app.route('/graphql', createGraphqlRoutes(config) as any)

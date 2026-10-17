@@ -4,7 +4,7 @@
  * A plugin declares the capabilities it needs (`capabilities: ['email:send']`).
  * The host then hands it a context whose powerful accessors are *gated* by those
  * declarations: reaching `ctx.email` without having declared `email:send` throws
- * `SonicCapabilityError` immediately, instead of failing deep inside a send.
+ * `BizzCMSCapabilityError` immediately, instead of failing deep inside a send.
  *
  * This is the isolation boundary that Strapi (namespacing only) and Payload (full
  * config access) don't have: capabilities make a plugin's blast radius explicit
@@ -58,7 +58,7 @@ export function isKnownCapability(name: string): name is Capability {
 /**
  * Thrown when a plugin uses a capability it did not declare.
  */
-export class SonicCapabilityError extends Error {
+export class BizzCMSCapabilityError extends Error {
   readonly capability: string
   readonly plugin?: string
   /** The API surface the plugin tried to access (e.g. 'ctx.cap.email'). Optional. */
@@ -68,7 +68,7 @@ export class SonicCapabilityError extends Error {
       `${plugin ? `Plugin "${plugin}"` : 'Plugin'} used capability "${capability}" without declaring it. ` +
         `Add "${capability}" to the plugin's capabilities.`
     )
-    this.name = 'SonicCapabilityError'
+    this.name = 'BizzCMSCapabilityError'
     this.capability = capability
     this.plugin = plugin
     this.accessedApi = accessedApi
@@ -81,11 +81,11 @@ export function hasCapability(granted: readonly string[], capability: string): b
 }
 
 /**
- * Assert a capability is granted, throwing {@link SonicCapabilityError} otherwise.
+ * Assert a capability is granted, throwing {@link BizzCMSCapabilityError} otherwise.
  */
 export function assertCapability(granted: readonly string[], capability: string, plugin?: string): void {
   if (!hasCapability(granted, capability)) {
-    throw new SonicCapabilityError(capability, plugin)
+    throw new BizzCMSCapabilityError(capability, plugin)
   }
 }
 
@@ -195,7 +195,7 @@ export interface CapabilityContext<Caps extends readonly Capability[] = readonly
   readonly capabilities: readonly string[]
   /** True if the plugin declared `capability`. */
   has(capability: string): boolean
-  /** Throw {@link SonicCapabilityError} unless `capability` was declared. */
+  /** Throw {@link BizzCMSCapabilityError} unless `capability` was declared. */
   require(capability: string): void
   /** Email service. `EmailService` when `email:send` is declared, else `never`. */
   readonly email: WhenGranted<Caps, 'email:send', EmailService>
@@ -229,7 +229,7 @@ export function createCapabilityContext<const Caps extends readonly Capability[]
   // returns the real service at runtime; gating is enforced dynamically below).
   const gate = (capability: string, anyOf: string[], provider: (() => unknown) | undefined): any => {
     const ok = anyOf.some((c) => hasCapability(granted, c))
-    if (!ok) throw new SonicCapabilityError(capability, plugin)
+    if (!ok) throw new BizzCMSCapabilityError(capability, plugin)
     if (!provider) {
       throw new Error(
         `Capability "${capability}" is declared by ${plugin ?? 'the plugin'} but no provider was supplied by the host.`

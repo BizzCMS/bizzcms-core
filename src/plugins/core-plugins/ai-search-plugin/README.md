@@ -1,4 +1,4 @@
-# AI Search Plugin for SonicJS
+# AI Search Plugin for BizzCMS
 
 Advanced search capabilities using Cloudflare AI Search. Provides semantic search, full-text search, and advanced filtering across all content collections.
 
@@ -16,7 +16,7 @@ Advanced search capabilities using Cloudflare AI Search. Provides semantic searc
 
 ## Installation
 
-The AI Search plugin is a core plugin and is included by default in SonicJS.
+The AI Search plugin is a core plugin and is included by default in BizzCMS.
 
 ### 1. Configure Cloudflare AI Search
 

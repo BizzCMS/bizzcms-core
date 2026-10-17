@@ -1,13 +1,13 @@
 # Magic Link Authentication Plugin
 
-Passwordless authentication for SonicJS via email magic links. Users sign in by clicking a secure one-time link sent to their email - no password required.
+Passwordless authentication for BizzCMS via email magic links. Users sign in by clicking a secure one-time link sent to their email - no password required.
 
 ## Features
 
 - ✅ **Passwordless**: No passwords to remember or manage
 - ✅ **Secure**: One-time use tokens with configurable expiration
 - ✅ **Rate Limited**: Prevents abuse with configurable request limits
-- ✅ **Email Integration**: Uses SonicJS email plugin (Resend)
+- ✅ **Email Integration**: Uses BizzCMS email plugin (Resend)
 - ✅ **User Tracking**: Logs IP and user agent for security
 - ✅ **Auto Cleanup**: Expired links are automatically ignored
 
@@ -17,7 +17,7 @@ Passwordless authentication for SonicJS via email magic links. Users sign in by 
 
 ## Installation
 
-The plugin is included with SonicJS but inactive by default.
+The plugin is included with BizzCMS but inactive by default.
 
 ### Prerequisites
 

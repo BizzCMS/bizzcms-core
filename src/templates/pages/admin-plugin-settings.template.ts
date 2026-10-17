@@ -851,7 +851,7 @@ const pluginSettingsComponents: Record<string, PluginSettingsRenderer> = {
  * OTP Login plugin settings content
  */
 function renderOTPLoginSettingsContent(plugin: any, settings: PluginSettings): string {
-  const siteName = settings.siteName || 'SonicJS'
+  const siteName = settings.siteName || 'BizzCMS'
   const emailConfigured = settings._emailConfigured || false
   const codeLength = settings.codeLength || 6
   const codeExpiryMinutes = settings.codeExpiryMinutes || 10
@@ -1582,7 +1582,7 @@ defineUserProfile({
         </p>
         <div class="bg-black/40 border border-white/10 rounded-lg p-3 mb-4">
           <p class="text-xs text-gray-400 mb-1">Edit this file:</p>
-          <code class="text-sm text-blue-300 font-mono">my-sonicjs-app/src/index.ts</code>
+          <code class="text-sm text-blue-300 font-mono">my-bizzcms-app/src/index.ts</code>
         </div>
         <p class="text-xs text-gray-400 mb-2">Example — add this near your <code>registerCollections([...])</code> call:</p>
         <pre class="bg-black/60 border border-white/10 rounded-lg p-4 overflow-x-auto"><code class="text-sm text-gray-200 font-mono whitespace-pre">${escapeHtmlAttr(codeExample)}</code></pre>

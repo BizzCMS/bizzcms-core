@@ -3,7 +3,7 @@
  * the password-reset token-leak regression.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import { createSonicJSApp } from '../../app'
+import { createBizzCMSApp } from '../../app'
 import {
   hasEmailService,
   getEmailService,
@@ -47,10 +47,10 @@ beforeEach(() => {
   resetHookSystem()
 })
 
-describe('EmailService wiring via createSonicJSApp', () => {
+describe('EmailService wiring via createBizzCMSApp', () => {
   it('initializes the configured provider on first request', async () => {
     const provider = recordingProvider()
-    const app = createSonicJSApp({ email: { provider } })
+    const app = createBizzCMSApp({ email: { provider } })
 
     expect(hasEmailService()).toBe(false)
     await app.request('/health', {}, fakeEnv(null) as never)
@@ -65,7 +65,7 @@ describe('password-reset no longer leaks the reset link (security regression)', 
 
   it('omits reset_link from the response and sends the email instead', async () => {
     const provider = recordingProvider()
-    const app = createSonicJSApp({ email: { provider } })
+    const app = createBizzCMSApp({ email: { provider } })
 
     const res = await app.request(
       '/auth/request-password-reset',
@@ -94,7 +94,7 @@ describe('password-reset no longer leaks the reset link (security regression)', 
 
   it('still returns the generic message (no enumeration) for an unknown email', async () => {
     const provider = recordingProvider()
-    const app = createSonicJSApp({ email: { provider } })
+    const app = createBizzCMSApp({ email: { provider } })
 
     const res = await app.request(
       '/auth/request-password-reset',

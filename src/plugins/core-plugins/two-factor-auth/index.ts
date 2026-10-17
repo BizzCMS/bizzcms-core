@@ -159,7 +159,7 @@ export const twoFactorAuthPlugin = definePlugin({
     issuer: {
       type: 'string',
       label: 'Issuer name',
-      default: 'SonicJS',
+      default: 'BizzCMS',
       description: "Label shown beside the account in the user's authenticator app.",
       maxLength: 64,
     },

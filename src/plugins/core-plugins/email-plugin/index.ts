@@ -2,7 +2,7 @@
  * v3 email-plugin entrypoint (PR-E Phase B, 2026-05-13).
  *
  * Replaces the legacy PluginBuilder-based plugin with a `definePlugin` v3
- * SonicPlugin shape. The plugin:
+ * BizzCMSPlugin shape. The plugin:
  *
  *   - Subscribes to three auth lifecycle events (`auth:registration:completed`,
  *     `auth:password-reset:requested`, `auth:password-reset:completed`) via

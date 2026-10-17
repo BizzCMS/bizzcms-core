@@ -26,7 +26,7 @@ export class MigrationService {
 
   /**
    * Cloudflare D1 owns migration bookkeeping through `d1_migrations`.
-   * SonicJS intentionally does not create its own tracking table.
+   * BizzCMS intentionally does not create its own tracking table.
    */
   async initializeMigrationsTable(): Promise<void> {
     // Kept as a no-op for compatibility with older callers.

@@ -9,7 +9,7 @@ export interface CfDestinationAddress {
 
 export interface CfAccountHealth {
   emailRoutingEnabled: boolean | null  // null = CF_ZONE_ID absent
-  emailRoutingZone: string | null      // zone name e.g. 'sonicjs.com'; null if unconfigured
+  emailRoutingZone: string | null      // zone name e.g. 'bizzcms.com'; null if unconfigured
   destinations: CfDestinationAddress[] // empty if CF_ACCOUNT_ID absent
   checkedAt: number                    // unix ms
   status: CfHealthStatus

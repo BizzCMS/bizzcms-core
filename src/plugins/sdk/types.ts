@@ -1,4 +1,4 @@
-export type { TypedHookHandler as SonicHookHandler } from '../hooks/typed-hooks'
+export type { TypedHookHandler as BizzCMSHookHandler } from '../hooks/typed-hooks'
 
 /**
  * CF Email Service-specific types for the email-plugin's EmailServiceImpl.

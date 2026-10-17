@@ -6,7 +6,7 @@ import { DocumentsService } from '../../../../services/documents'
 /**
  * Programmatic API keys, built on the document model (no new table — R-rules).
  *
- * better-auth 1.6.x ships no apiKey plugin, so SonicJS provides long-lived,
+ * better-auth 1.6.x ships no apiKey plugin, so BizzCMS provides long-lived,
  * per-user keys for headless / server-to-server REST access here. A key is one
  * `api_key` document:
  *   - the plaintext secret (`sk_<hex>`) is shown exactly once, at creation;

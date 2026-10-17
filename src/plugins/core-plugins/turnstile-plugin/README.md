@@ -1,6 +1,6 @@
 # Cloudflare Turnstile Plugin
 
-CAPTCHA-free bot protection using Cloudflare Turnstile. Provides reusable verification middleware for any form in your SonicJS application.
+CAPTCHA-free bot protection using Cloudflare Turnstile. Provides reusable verification middleware for any form in your BizzCMS application.
 
 ## Features
 
@@ -13,7 +13,7 @@ CAPTCHA-free bot protection using Cloudflare Turnstile. Provides reusable verifi
 
 ## Installation
 
-The Turnstile plugin is a core plugin and is included by default in SonicJS.
+The Turnstile plugin is a core plugin and is included by default in BizzCMS.
 
 ### 1. Get Turnstile Keys
 

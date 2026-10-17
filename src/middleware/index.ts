@@ -1,7 +1,7 @@
 /**
  * Middleware Module Exports
  *
- * Request processing middleware for SonicJS
+ * Request processing middleware for BizzCMS
  *
  * Note: Most middleware is currently in the monolith and will be migrated later.
  * For now, we only export the bootstrap middleware which is used for system initialization.

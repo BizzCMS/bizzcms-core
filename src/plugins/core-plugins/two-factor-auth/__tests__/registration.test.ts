@@ -10,7 +10,7 @@ import { PLUGIN_REGISTRY } from '../../../manifest-registry'
 
 describe('two-factor-auth plugin registration', () => {
   it('is a v3 definePlugin', () => {
-    expect(twoFactorAuthPlugin.__sonicV3).toBe(true)
+    expect(twoFactorAuthPlugin.__bizzV3).toBe(true)
     expect(createTwoFactorAuthPlugin()).toBe(twoFactorAuthPlugin)
   })
 

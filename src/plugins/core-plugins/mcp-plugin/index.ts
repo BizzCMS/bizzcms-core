@@ -1,5 +1,5 @@
 /**
- * MCP Server Plugin — exposes SonicJS content as Model Context Protocol tools.
+ * MCP Server Plugin — exposes BizzCMS content as Model Context Protocol tools.
  *
  * Opt-in: add `mcpPlugin({...})` to the app's `plugins.register` array to activate.
  * When absent, zero routes are mounted. Authentication is delegated entirely to the
@@ -25,9 +25,9 @@ export function mcpPlugin(options: McpConfigInput = {}) {
     id: 'mcp',
     version: '1.0.0',
     name: 'MCP Server',
-    description: 'Exposes SonicJS content as Model Context Protocol tools for AI agents (Claude Code, Cursor, …).',
+    description: 'Exposes BizzCMS content as Model Context Protocol tools for AI agents (Claude Code, Cursor, …).',
     sonicjsVersionRange: '^3.0.0',
-    author: { name: 'SonicJS Team' },
+    author: { name: 'BizzCMS' },
 
     register(app) {
       // Mount at /mcp (not /api/mcp) — avoids the /api/:collection catch-all in

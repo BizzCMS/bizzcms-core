@@ -24,7 +24,7 @@ import { execListCollections } from '../tools/static'
 import { buildResourceList, readResource } from '../resources/schemas'
 import { parseJsonRpc, rpcResult, rpcError, JSON_RPC, McpToolError } from '../jsonrpc'
 
-const SERVER_INFO = { name: 'sonicjs-mcp', version: '1.0.0' } as const
+const SERVER_INFO = { name: 'bizzcms-mcp', version: '1.0.0' } as const
 // MCP protocol revision this server speaks (request/response subset).
 const PROTOCOL_VERSION = '2024-11-05'
 

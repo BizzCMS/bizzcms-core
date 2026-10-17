@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { loadDbEmailSettings, dbSettingsFrom } from '../../services/email/db-settings'
-import { createSonicJSApp } from '../../app'
+import { createBizzCMSApp } from '../../app'
 import {
   getEmailService,
   resetEmailService,
@@ -69,7 +69,7 @@ describe('EmailService honors admin-UI (DB) settings when no config/env provider
 
   it('resolves the Resend provider from DB settings on first request', async () => {
     const env = { DB: dbWith(JSON.stringify({ apiKey: 're_db', fromEmail: 'noreply@site.com', fromName: 'Site' })) }
-    const app = createSonicJSApp() // no config.email, no env keys
+    const app = createBizzCMSApp() // no config.email, no env keys
 
     await app.request('/health', {}, env as never)
 
@@ -78,7 +78,7 @@ describe('EmailService honors admin-UI (DB) settings when no config/env provider
 
   it('falls back to console when DB has no API key', async () => {
     const env = { DB: dbWith(JSON.stringify({ fromEmail: 'noreply@site.com' })) }
-    const app = createSonicJSApp()
+    const app = createBizzCMSApp()
 
     await app.request('/health', {}, env as never)
 

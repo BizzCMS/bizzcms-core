@@ -295,7 +295,7 @@ export function renderWorkflowContentDetail(data: WorkflowContentDetailData): st
   `
 
   return renderAdminLayout({
-    title: `${data.content.title} - Workflow - SonicJS AI`,
+    title: `${data.content.title} - Workflow - BizzCMS`,
     pageTitle: `${data.content.title} - Workflow`,
     content,
     user: data.user,

@@ -1,7 +1,7 @@
 /**
  * Quill Rich Text Editor Plugin
  *
- * Provides Quill editor integration for rich text editing in SonicJS
+ * Provides Quill editor integration for rich text editing in BizzCMS
  * https://quilljs.com/
  */
 
@@ -290,9 +290,9 @@ export const quillEditorPlugin = definePlugin({
   id: 'quill-editor',
   version: '1.0.0',
   name: 'Quill Editor',
-  description: 'Quill rich text editor integration for SonicJS.',
+  description: 'Quill rich text editor integration for BizzCMS.',
   sonicjsVersionRange: '^3.0.0',
-  author: { name: 'SonicJS Team', email: 'team@sonicjs.com' },
+  author: { name: 'BizzCMS', email: 'team@bizzcms.com' },
 
   activate: async () => console.info('✅ Quill Editor plugin activated'),
   deactivate: async () => console.info('❌ Quill Editor plugin deactivated'),

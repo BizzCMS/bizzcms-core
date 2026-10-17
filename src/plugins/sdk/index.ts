@@ -1,7 +1,7 @@
 /**
  * Plugin SDK
  *
- * Payload-shaped plugin authoring API for SonicJS v3+.
+ * Payload-shaped plugin authoring API for BizzCMS v3+.
  *
  *   definePlugin({...})       — canonical plugin factory (identity + typed shape)
  *   registerPlugins(app, ...)  — single chokepoint for app-level registration

@@ -29,7 +29,7 @@ import type { Bindings } from '../../app'
 
 const EMAIL = 'admin@roundtrip.test'
 const PASSWORD = 'correct-horse-battery-staple'
-const ORIGIN = 'https://sonic.test'
+const ORIGIN = 'https://bizz.test'
 
 let db: TestD1
 /** Map-backed KV. `createKVStorage` only ever calls get/put/delete. */
