@@ -499,6 +499,9 @@ userRoutes.get('/users', async (c) => {
       whereClause = 'WHERE u.is_active = 1'
     } else if (statusFilter === 'inactive') {
       whereClause = 'WHERE u.is_active = 0'
+    } else if (statusFilter === 'activated') {
+      // Activated: has a password or social login (has signed up or used the invitation).
+      whereClause = 'WHERE u.is_active = 1 AND EXISTS (SELECT 1 FROM auth_account a WHERE a.user_id = u.id)'
     } else if (statusFilter === 'pending') {
       // Not activated: no password and no social login yet (e.g. imported, invitation not used).
       whereClause = 'WHERE u.is_active = 1 AND NOT EXISTS (SELECT 1 FROM auth_account a WHERE a.user_id = u.id)'
@@ -582,6 +585,11 @@ userRoutes.get('/users', async (c) => {
     }))
 
     const successMessage = c.req.query('success') || undefined
+    const statsRow = await db.prepare(`SELECT COUNT(*) AS total,
+        SUM(CASE WHEN EXISTS (SELECT 1 FROM auth_account a WHERE a.user_id = u.id) THEN 1 ELSE 0 END) AS activated,
+        SUM(CASE WHEN u.is_active = 1 AND NOT EXISTS (SELECT 1 FROM auth_account a WHERE a.user_id = u.id) THEN 1 ELSE 0 END) AS notActivated,
+        SUM(CASE WHEN u.role = 'admin' THEN 1 ELSE 0 END) AS admins
+      FROM auth_user u`).first().catch(() => null) as any
 
     const pageData: UsersListPageData = {
       users,
@@ -594,6 +602,7 @@ userRoutes.get('/users', async (c) => {
       statusFilter,
       sortKey,
       sortDir,
+      stats: statsRow ? { total: Number(statsRow.total) || 0, activated: Number(statsRow.activated) || 0, notActivated: Number(statsRow.notActivated) || 0, admins: Number(statsRow.admins) || 0 } : undefined,
       success: successMessage,
       pagination: {
         currentPage: page,

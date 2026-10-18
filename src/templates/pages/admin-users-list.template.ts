@@ -36,6 +36,8 @@ export interface UsersListPageData {
   /** Server-side sort: column key and direction. */
   sortKey?: string
   sortDir?: 'asc' | 'desc'
+  /** Counts over all users: total, activated (can sign in), not activated, administrators. */
+  stats?: { total: number; activated: number; notActivated: number; admins: number }
   error?: string
   success?: string
   user?: {
@@ -226,70 +228,26 @@ export function renderUsersListPage(data: UsersListPageData): string {
       ${data.error ? renderAlert({ type: 'error', message: data.error, dismissible: true }) : ''}
       ${data.success ? renderAlert({ type: 'success', message: data.success, dismissible: true }) : ''}
 
-      <!-- Stats -->
+      <!-- Stats: counted over all users (not only the page shown); each card opens its filter. -->
       <div class="mb-6">
         <h3 class="text-base font-semibold text-zinc-950 dark:text-white">User Statistics</h3>
         <dl class="mt-5 grid grid-cols-1 divide-zinc-950/5 dark:divide-white/10 overflow-hidden rounded-lg bg-zinc-800/75 dark:bg-zinc-800/75 ring-1 ring-inset ring-zinc-950/10 dark:ring-white/10 md:grid-cols-4 md:divide-x md:divide-y-0">
-          <div class="px-4 py-5 sm:p-6">
+          <a href="/admin/users?status=all" class="block px-4 py-5 sm:p-6 hover:bg-zinc-950/[2.5%] dark:hover:bg-white/5 transition-colors">
             <dt class="text-base font-normal text-zinc-700 dark:text-zinc-100">Total Users</dt>
-            <dd class="mt-1 flex items-baseline justify-between md:block lg:flex">
-              <div class="flex items-baseline text-2xl font-semibold text-cyan-400">
-                ${data.totalUsers}
-              </div>
-              <div class="inline-flex items-baseline rounded-full bg-lime-400/10 text-lime-600 dark:text-lime-400 px-2.5 py-0.5 text-sm font-medium md:mt-2 lg:mt-0">
-                <svg viewBox="0 0 20 20" fill="currentColor" class="-ml-1 mr-0.5 size-5 shrink-0 self-center">
-                  <path d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0 1 10 17Z" clip-rule="evenodd" fill-rule="evenodd" />
-                </svg>
-                <span class="sr-only">Increased by</span>
-                5.2%
-              </div>
-            </dd>
-          </div>
-          <div class="px-4 py-5 sm:p-6">
-            <dt class="text-base font-normal text-zinc-700 dark:text-zinc-100">Active Users</dt>
-            <dd class="mt-1 flex items-baseline justify-between md:block lg:flex">
-              <div class="flex items-baseline text-2xl font-semibold text-lime-400">
-                ${data.users.filter(u => u.isActive).length}
-              </div>
-              <div class="inline-flex items-baseline rounded-full bg-lime-400/10 text-lime-600 dark:text-lime-400 px-2.5 py-0.5 text-sm font-medium md:mt-2 lg:mt-0">
-                <svg viewBox="0 0 20 20" fill="currentColor" class="-ml-1 mr-0.5 size-5 shrink-0 self-center">
-                  <path d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0 1 10 17Z" clip-rule="evenodd" fill-rule="evenodd" />
-                </svg>
-                <span class="sr-only">Increased by</span>
-                3.1%
-              </div>
-            </dd>
-          </div>
-          <div class="px-4 py-5 sm:p-6">
+            <dd class="mt-1 text-2xl font-semibold text-cyan-400">${data.stats?.total ?? data.totalUsers}</dd>
+          </a>
+          <a href="/admin/users?status=activated" class="block px-4 py-5 sm:p-6 hover:bg-zinc-950/[2.5%] dark:hover:bg-white/5 transition-colors">
+            <dt class="text-base font-normal text-zinc-700 dark:text-zinc-100">Activated</dt>
+            <dd class="mt-1 text-2xl font-semibold text-lime-400">${data.stats?.activated ?? 0}</dd>
+          </a>
+          <a href="/admin/users?status=pending" class="block px-4 py-5 sm:p-6 hover:bg-zinc-950/[2.5%] dark:hover:bg-white/5 transition-colors">
+            <dt class="text-base font-normal text-zinc-700 dark:text-zinc-100">Not activated</dt>
+            <dd class="mt-1 text-2xl font-semibold text-amber-400">${data.stats?.notActivated ?? 0}</dd>
+          </a>
+          <a href="/admin/users?status=all&amp;role=admin" class="block px-4 py-5 sm:p-6 hover:bg-zinc-950/[2.5%] dark:hover:bg-white/5 transition-colors">
             <dt class="text-base font-normal text-zinc-700 dark:text-zinc-100">Administrators</dt>
-            <dd class="mt-1 flex items-baseline justify-between md:block lg:flex">
-              <div class="flex items-baseline text-2xl font-semibold text-pink-400">
-                ${data.users.filter(u => u.role === 'admin').length}
-              </div>
-              <div class="inline-flex items-baseline rounded-full bg-lime-400/10 text-lime-600 dark:text-lime-400 px-2.5 py-0.5 text-sm font-medium md:mt-2 lg:mt-0">
-                <svg viewBox="0 0 20 20" fill="currentColor" class="-ml-1 mr-0.5 size-5 shrink-0 self-center">
-                  <path d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0 1 10 17Z" clip-rule="evenodd" fill-rule="evenodd" />
-                </svg>
-                <span class="sr-only">Increased by</span>
-                1.8%
-              </div>
-            </dd>
-          </div>
-          <div class="px-4 py-5 sm:p-6">
-            <dt class="text-base font-normal text-zinc-700 dark:text-zinc-100">Active This Week</dt>
-            <dd class="mt-1 flex items-baseline justify-between md:block lg:flex">
-              <div class="flex items-baseline text-2xl font-semibold text-purple-400">
-                ${data.users.filter(u => u.lastLoginAt && u.lastLoginAt > Date.now() - 7 * 24 * 60 * 60 * 1000).length}
-              </div>
-              <div class="inline-flex items-baseline rounded-full bg-pink-400/10 text-pink-600 dark:text-pink-400 px-2.5 py-0.5 text-sm font-medium md:mt-2 lg:mt-0">
-                <svg viewBox="0 0 20 20" fill="currentColor" class="-ml-1 mr-0.5 size-5 shrink-0 self-center">
-                  <path d="M10 3a.75.75 0 0 1 .75.75v10.638l3.96-4.158a.75.75 0 1 1 1.08 1.04l-5.25 5.5a.75.75 0 0 1-1.08 0l-5.25-5.5a.75.75 0 1 1 1.08-1.04l3.96 4.158V3.75A.75.75 0 0 1 10 3Z" clip-rule="evenodd" fill-rule="evenodd" />
-                </svg>
-                <span class="sr-only">Decreased by</span>
-                2.3%
-              </div>
-            </dd>
-          </div>
+            <dd class="mt-1 text-2xl font-semibold text-pink-400">${data.stats?.admins ?? 0}</dd>
+          </a>
         </dl>
       </div>
 
@@ -370,6 +328,7 @@ export function renderUsersListPage(data: UsersListPageData): string {
                   >
                     <option value="active" ${!data.statusFilter || data.statusFilter === 'active' ? 'selected' : ''}>Active</option>
                     <option value="inactive" ${data.statusFilter === 'inactive' ? 'selected' : ''}>Inactive</option>
+                    <option value="activated" ${data.statusFilter === 'activated' ? 'selected' : ''}>Activated</option>
                     <option value="pending" ${data.statusFilter === 'pending' ? 'selected' : ''}>Not activated</option>
                     <option value="all" ${data.statusFilter === 'all' ? 'selected' : ''}>All Users</option>
                   </select>

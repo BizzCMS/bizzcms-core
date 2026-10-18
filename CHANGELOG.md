@@ -2,6 +2,11 @@
 
 ## BizzCMS
 
+### 3.0.0-beta.28-bizzcms.4
+
+- Every sign-in records `auth_user.last_login_at` (Better Auth session-create hook), so Admin › Users shows the real last login (it said "Never" for everyone).
+- Admin › Users statistics count all users (they counted only the 20 on the page and showed fixed fake percentages): Total, Activated, Not activated, Administrators, each opening its filter; new Status filter "Activated".
+
 ### 3.0.0-beta.28-bizzcms.3
 
 - Admin › Users: "Not activated" status filter and badge for accounts with no password or social login yet (e.g. imported, invitation not used).

@@ -1,6 +1,6 @@
 {
   "name": "bizzcms-core",
-  "version": "3.0.0-beta.28-bizzcms.3",
+  "version": "3.0.0-beta.28-bizzcms.4",
   "description": "BizzCMS core: the CMS engine behind BizzCMS sites, for Cloudflare Workers, D1 and R2.",
   "type": "module",
   "main": "./dist/index.cjs",

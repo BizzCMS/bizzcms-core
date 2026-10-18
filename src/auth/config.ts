@@ -196,6 +196,17 @@ export function getDefaultAuthOptions(env: Bindings, requestBaseURL?: string) {
               },
             },
           },
+          // Every sign-in (password, social, magic link, activation) creates a session: record it as the last login
+          // (Admin › Users "Last login"). Best effort, never blocks the sign-in.
+          session: {
+            create: {
+              after: async (session: { userId: string }) => {
+                try {
+                  await env.DB.prepare('UPDATE auth_user SET last_login_at = ? WHERE id = ?').bind(Date.now(), session.userId).run()
+                } catch { /* non-fatal */ }
+              },
+            },
+          },
         },
       }
     ),
