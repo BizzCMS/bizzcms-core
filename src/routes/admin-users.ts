@@ -478,6 +478,17 @@ userRoutes.get('/users', async (c) => {
     const roleFilter = c.req.query('role') || ''
     const statusFilter = c.req.query('status') || 'active'
     const offset = (page - 1) * limit
+    // Sort across all users (not only the page shown). Whitelisted columns; never-logged-in users come last.
+    const SORTS: Record<string, string> = {
+      name: "lower(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, ''))",
+      email: 'lower(u.email)',
+      role: 'u.role',
+      lastLoginAt: 'u.last_login_at',
+      createdAt: 'u.created_at',
+    }
+    const sortKey = SORTS[c.req.query('sort') || ''] ? String(c.req.query('sort')) : 'createdAt'
+    const sortDir: 'asc' | 'desc' = c.req.query('dir') === 'asc' ? 'asc' : 'desc'
+    const orderBy = `${sortKey === 'lastLoginAt' ? 'u.last_login_at IS NULL, ' : ''}${SORTS[sortKey]} ${sortDir.toUpperCase()}, u.created_at DESC`
 
     // Build search query
     let whereClause = ''
@@ -511,7 +522,7 @@ userRoutes.get('/users', async (c) => {
              u.email_verified, u.two_factor_enabled, u.is_active
       FROM auth_user u
       ${whereClause}
-      ORDER BY u.created_at DESC
+      ORDER BY ${orderBy}
       LIMIT ? OFFSET ?
     `)
 
@@ -576,6 +587,8 @@ userRoutes.get('/users', async (c) => {
       roleFilter,
       roleOptions: await fetchRoleOptions(db),
       statusFilter,
+      sortKey,
+      sortDir,
       success: successMessage,
       pagination: {
         currentPage: page,
@@ -584,7 +597,9 @@ userRoutes.get('/users', async (c) => {
         itemsPerPage: limit,
         startItem: offset + 1,
         endItem: Math.min(offset + limit, totalUsers),
-        baseUrl: '/admin/users'
+        baseUrl: '/admin/users',
+        // Paging keeps the search, filters and sort.
+        queryParams: Object.fromEntries(Object.entries({ search, role: roleFilter, status: statusFilter === 'active' ? '' : statusFilter, sort: sortKey, dir: sortDir }).filter(([, v]) => v))
       },
       user: {
         name: user!.email.split('@')[0] || user!.email,

@@ -2,6 +2,10 @@
 
 ## BizzCMS
 
+### 3.0.0-beta.28-bizzcms.2
+
+- Admin › Users sorts on the server across all users (name, e-mail, role, last login, created; never-logged-in last); paging keeps search, filters and sort. Tables get an optional `serverSort`.
+
 ### 3.0.0-beta.28-bizzcms.1 (unreleased)
 
 - Engine source now lives in BizzCMS/bizzcms-core (imported from the 3.0.0-beta.28 release of the open-source core it

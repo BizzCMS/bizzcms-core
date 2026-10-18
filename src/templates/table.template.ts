@@ -17,6 +17,9 @@ export interface TableData<T = any> {
   title?: string
   rowClickable?: boolean
   rowClickUrl?: (row: T) => string
+  /** Sort on the server across all pages: sortable headers become links (`href(key, dir)`) and show the current sort.
+   *  Without it, sortable headers sort only the rows on the page, in the browser. */
+  serverSort?: { key: string; dir: 'asc' | 'desc'; href: (key: string, dir: 'asc' | 'desc') => string }
 }
 
 export function renderTable<T = any>(data: TableData<T>): string {
@@ -64,7 +67,18 @@ export function renderTable<T = any>(data: TableData<T>): string {
                 const isLast = index === data.columns.length - 1
                 return `
                 <th class="px-4 py-3.5 text-left text-sm font-semibold text-zinc-950 dark:text-white ${isFirst ? 'sm:pl-0' : ''} ${isLast ? 'sm:pr-0' : ''} ${column.className || ''}">
-                  ${column.sortable ? `
+                  ${column.sortable && data.serverSort ? (() => {
+                    const ss = data.serverSort!
+                    const on = ss.key === column.key
+                    // First click: dates newest first, text A–Z; a second click on the same column flips it.
+                    const next: 'asc' | 'desc' = on ? (ss.dir === 'asc' ? 'desc' : 'asc') : (column.sortType === 'date' ? 'desc' : 'asc')
+                    return `<a href="${ss.href(column.key, next)}" class="flex items-center gap-x-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors text-left" aria-sort="${on ? (ss.dir === 'asc' ? 'ascending' : 'descending') : 'none'}">
+                      <span>${column.label}</span>
+                      <div class="sort-icons flex flex-col">
+                        <svg class="w-3 h-3 ${on && ss.dir === 'asc' ? 'opacity-100' : 'opacity-30'}" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                        <svg class="w-3 h-3 -mt-1 ${on && ss.dir === 'desc' ? 'opacity-100' : 'opacity-30'}" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                      </div></a>`
+                  })() : column.sortable ? `
                     <button
                       class="flex items-center gap-x-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors sort-btn text-left"
                       data-column="${column.key}"

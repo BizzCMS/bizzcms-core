@@ -61,3 +61,17 @@ describe('GET /files/*', () => {
     expect(res.headers.get('Content-Security-Policy') ?? '').not.toContain('sandbox')
   })
 })
+
+describe('Admin > Users server-side sort', () => {
+  const html = renderUsersListPage({
+    users: [{ id: 'u1', email: 'a@test.local', username: 'a', firstName: 'Ana', lastName: 'B', role: 'supplier', avatar: null, isActive: true, lastLoginAt: null, createdAt: Date.now(), updatedAt: Date.now() }],
+    currentPage: 1, totalPages: 1, totalUsers: 1, searchFilter: 'ana', roleFilter: 'supplier', statusFilter: 'all',
+    sortKey: 'lastLoginAt', sortDir: 'desc',
+  } as never)
+  it('sortable headers link to a server sort that keeps the filters', () => {
+    expect(html).toContain('/admin/users?search=ana&amp;role=supplier&amp;status=all&amp;sort=lastLoginAt&amp;dir=asc')
+    expect(html).toContain('sort=createdAt&amp;dir=desc')
+    expect(html).toContain('sort=email&amp;dir=asc')
+  })
+  it('marks the current sort', () => expect(html).toContain('aria-sort="descending"'))
+})

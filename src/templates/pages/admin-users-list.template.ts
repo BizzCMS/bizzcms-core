@@ -31,6 +31,9 @@ export interface UsersListPageData {
   /** Role filter options (role name + label); from the RBAC roles. */
   roleOptions?: Array<{ value: string; label: string }>
   searchFilter?: string
+  /** Server-side sort: column key and direction. */
+  sortKey?: string
+  sortDir?: 'asc' | 'desc'
   error?: string
   success?: string
   user?: {
@@ -169,7 +172,19 @@ export function renderUsersListPage(data: UsersListPageData): string {
     selectable: false,
     rowClickable: true,
     rowClickUrl: (row: User) => `/admin/users/${row.id}/edit`,
-    emptyMessage: 'No users found'
+    emptyMessage: 'No users found',
+    serverSort: {
+      key: data.sortKey ?? 'createdAt',
+      dir: data.sortDir ?? 'desc',
+      href: (key, dir) => {
+        const q = new URLSearchParams()
+        if (data.searchFilter) q.set('search', data.searchFilter)
+        if (data.roleFilter) q.set('role', data.roleFilter)
+        if (data.statusFilter && data.statusFilter !== 'active') q.set('status', data.statusFilter)
+        q.set('sort', key); q.set('dir', dir)
+        return escapeHtml(`/admin/users?${q}`)
+      }
+    }
   }
 
   const pageContent = `
