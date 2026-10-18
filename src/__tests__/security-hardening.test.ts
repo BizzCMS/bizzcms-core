@@ -75,3 +75,14 @@ describe('Admin > Users server-side sort', () => {
   })
   it('marks the current sort', () => expect(html).toContain('aria-sort="descending"'))
 })
+
+describe('Admin > Users: not activated', () => {
+  const html = renderUsersListPage({
+    users: [{ id: 'u1', email: 'a@test.local', username: 'a', firstName: 'Ana', lastName: 'B', role: 'supplier', avatar: null, isActive: true, canSignIn: false, lastLoginAt: null, createdAt: Date.now(), updatedAt: Date.now() }],
+    currentPage: 1, totalPages: 1, totalUsers: 1, statusFilter: 'pending',
+  } as never)
+  it('shows the badge and the filter option', () => {
+    expect(html).toContain('>Not activated</span>')
+    expect(html).toContain('<option value="pending" selected>Not activated</option>')
+  })
+})

@@ -499,6 +499,9 @@ userRoutes.get('/users', async (c) => {
       whereClause = 'WHERE u.is_active = 1'
     } else if (statusFilter === 'inactive') {
       whereClause = 'WHERE u.is_active = 0'
+    } else if (statusFilter === 'pending') {
+      // Not activated: no password and no social login yet (e.g. imported, invitation not used).
+      whereClause = 'WHERE u.is_active = 1 AND NOT EXISTS (SELECT 1 FROM auth_account a WHERE a.user_id = u.id)'
     } else {
       // 'all' - no filter
       whereClause = 'WHERE 1=1'
@@ -519,7 +522,8 @@ userRoutes.get('/users', async (c) => {
     const usersStmt = db.prepare(`
       SELECT u.id, u.email, u.first_name, u.last_name,
              u.role, u.avatar, u.created_at, u.last_login_at, u.updated_at,
-             u.email_verified, u.two_factor_enabled, u.is_active
+             u.email_verified, u.two_factor_enabled, u.is_active,
+             EXISTS (SELECT 1 FROM auth_account a WHERE a.user_id = u.id) AS can_sign_in
       FROM auth_user u
       ${whereClause}
       ORDER BY ${orderBy}
@@ -570,6 +574,7 @@ userRoutes.get('/users', async (c) => {
       avatar: u.avatar,
       isActive: Boolean(u.is_active),
       lastLoginAt: u.last_login_at,
+      canSignIn: Number(u.can_sign_in) === 1,
       createdAt: u.created_at,
       updatedAt: u.updated_at,
       formattedLastLogin: u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : undefined,

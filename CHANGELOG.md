@@ -2,6 +2,10 @@
 
 ## BizzCMS
 
+### 3.0.0-beta.28-bizzcms.3
+
+- Admin › Users: "Not activated" status filter and badge for accounts with no password or social login yet (e.g. imported, invitation not used).
+
 ### 3.0.0-beta.28-bizzcms.2
 
 - Admin › Users sorts on the server across all users (name, e-mail, role, last login, created; never-logged-in last); paging keeps search, filters and sort. Tables get an optional `serverSort`.

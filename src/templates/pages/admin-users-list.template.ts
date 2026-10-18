@@ -14,6 +14,8 @@ export interface User {
   avatar?: string
   isActive: boolean
   lastLoginAt?: number
+  /** False for an account with no way to sign in yet (no password, no social login), e.g. imported and not activated. */
+  canSignIn?: boolean
   createdAt: number
   updatedAt: number
   formattedLastLogin?: string
@@ -129,7 +131,8 @@ export function renderUsersListPage(data: UsersListPageData): string {
       label: 'Last Login',
       sortable: true,
       sortType: 'date',
-      render: (value: number | null) => {
+      render: (value: number | null, row: User) => {
+        if (row.canSignIn === false) return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20">Not activated</span>'
         if (!value) return '<span class="text-zinc-500 dark:text-zinc-400">Never</span>'
         return `<span class="text-sm text-zinc-500 dark:text-zinc-400">${new Date(value).toLocaleDateString()}</span>`
       }
@@ -367,6 +370,7 @@ export function renderUsersListPage(data: UsersListPageData): string {
                   >
                     <option value="active" ${!data.statusFilter || data.statusFilter === 'active' ? 'selected' : ''}>Active</option>
                     <option value="inactive" ${data.statusFilter === 'inactive' ? 'selected' : ''}>Inactive</option>
+                    <option value="pending" ${data.statusFilter === 'pending' ? 'selected' : ''}>Not activated</option>
                     <option value="all" ${data.statusFilter === 'all' ? 'selected' : ''}>All Users</option>
                   </select>
                   <svg viewBox="0 0 16 16" fill="currentColor" data-slot="icon" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-purple-600 dark:text-purple-400 sm:size-4">
