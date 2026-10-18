@@ -2,6 +2,8 @@
 
 ## BizzCMS
 
+### 3.0.0-beta.28-bizzcms.5 (.4 was packed twice under one version; .5 is the complete build)
+
 ### 3.0.0-beta.28-bizzcms.4
 
 - Every sign-in records `auth_user.last_login_at` (Better Auth session-create hook), so Admin › Users shows the real last login (it said "Never" for everyone).
