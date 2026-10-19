@@ -2,6 +2,10 @@
 
 ## BizzCMS
 
+### 3.0.0-beta.28-bizzcms.7
+
+- Plugin wiring: a request waits at most 3 s (was 8 s) and a stuck wiring restarts after 8 s; `/files/*` (media) never waits for plugin wiring. Seen live: wiring still pending after 8 s on one isolate.
+
 ### 3.0.0-beta.28-bizzcms.6
 
 - Fix intermittent hangs ("the site hangs, sometimes signed in, sometimes not"): promises shared by all requests of an isolate (plugin wiring on every request, plugin boot, documents schema cache) are never awaited forever. A request cancelled mid-start left them pending for the isolate's life. New `utils/shared-once.ts`: a caller waits at most a few seconds, a stale attempt is restarted, a failure is retried.

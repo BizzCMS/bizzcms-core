@@ -297,6 +297,6 @@ export function createPluginWirer(
   const once = sharedOnce('plugin wiring', () => {
     const list = typeof plugins === 'function' ? plugins() : plugins
     return wireRegisteredPlugins(list, ctxFactory())
-  })
+  }, { waitMs: 3_000, staleMs: 8_000 })
   return once.get
 }

@@ -440,6 +440,8 @@ export function createBizzCMSApp(config: BizzCMSConfig = {}): BizzCMSApp {
   // Plugin wiring middleware - calls boot() on the first request so it runs after
   // bootstrap. Subsequent requests return the cached once-guard result instantly.
   app.use('*', async (c, next) => {
+    // Media files need no plugin hooks: never let them wait on a slow first wiring.
+    if (c.req.path.startsWith('/files/')) return next()
     await boot(c.env as unknown as Record<string, unknown>)
     return next()
   })
