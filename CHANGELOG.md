@@ -2,6 +2,10 @@
 
 ## BizzCMS
 
+### 3.0.0-beta.28-bizzcms.6
+
+- Fix intermittent hangs ("the site hangs, sometimes signed in, sometimes not"): promises shared by all requests of an isolate (plugin wiring on every request, plugin boot, documents schema cache) are never awaited forever. A request cancelled mid-start left them pending for the isolate's life. New `utils/shared-once.ts`: a caller waits at most a few seconds, a stale attempt is restarted, a failure is retried.
+
 ### 3.0.0-beta.28-bizzcms.5 (.4 was packed twice under one version; .5 is the complete build)
 
 ### 3.0.0-beta.28-bizzcms.4

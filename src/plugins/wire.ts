@@ -18,6 +18,7 @@ import type { HookEventName } from './hooks/catalog'
 import { isKnownHookEvent } from './hooks/catalog'
 import { HOOK_CAPABILITY_MAP, BizzCMSCapabilityError } from './capabilities'
 import { topoSort } from './topo-sort'
+import { sharedOnce } from '../utils/shared-once'
 
 /** A hook subscription declared by a plugin (the legacy `hooks[]` shape). */
 export interface WirableHook {
@@ -291,12 +292,11 @@ export function createPluginWirer(
   plugins: Array<WirablePlugin | undefined | null> | (() => Array<WirablePlugin | undefined | null>),
   ctxFactory: () => PluginBootContext
 ): () => Promise<WireResult> {
-  let started: Promise<WireResult> | undefined
-  return () => {
-    if (!started) {
-      const list = typeof plugins === 'function' ? plugins() : plugins
-      started = wireRegisteredPlugins(list, ctxFactory())
-    }
-    return started
-  }
+  // Shared by every request of the isolate, but never awaited forever: a wiring attempt left pending by a
+  // cancelled request is retried, and a caller waits at most a few seconds (utils/shared-once.ts).
+  const once = sharedOnce('plugin wiring', () => {
+    const list = typeof plugins === 'function' ? plugins() : plugins
+    return wireRegisteredPlugins(list, ctxFactory())
+  })
+  return once.get
 }

@@ -1,3 +1,4 @@
+import { sharedOnce } from '../utils/shared-once'
 import { D1Database } from '@cloudflare/workers-types'
 import type { QueryableField } from '../schemas/document'
 
@@ -12,14 +13,15 @@ const SAFE_IDENTIFIER = /^[a-z_][a-z0-9_]*$/
 // resetScalarSchemaCache() when creating a new DB instance.
 let _columnCache: Set<string> | null = null
 let _indexCache: Set<string> | null = null
-// Single shared promise so parallel callers don't each fire their own PRAGMA batch.
-let _cacheInitPromise: Promise<{ columns: Set<string>; indexes: Set<string> }> | null = null
+// One shared lookup per isolate, never awaited forever (utils/shared-once.ts); a slow or dead shared attempt
+// falls back to this request's own lookup.
+let _cacheInit: { get: () => Promise<{ columns: Set<string>; indexes: Set<string> }> } | null = null
 
 /** Reset the module-level column/index caches. Tests that swap the underlying DB between runs must call this. */
 export function resetScalarSchemaCache(): void {
   _columnCache = null
   _indexCache = null
-  _cacheInitPromise = null
+  _cacheInit = null
 }
 
 /** Fetch (and cache) column names + existing index names on `documents` in one batch. */
@@ -27,23 +29,22 @@ function ensureDocumentsCaches(db: D1Database): Promise<{ columns: Set<string>; 
   if (_columnCache !== null && _indexCache !== null) {
     return Promise.resolve({ columns: _columnCache, indexes: _indexCache })
   }
-  if (!_cacheInitPromise) {
-    _cacheInitPromise = (async () => {
-      try {
-        const [colInfo, idxInfo] = await db.batch([
-          db.prepare("SELECT name FROM pragma_table_xinfo('documents')"),
-          db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='documents'"),
-        ])
-        _columnCache = new Set((colInfo?.results ?? []).map((r: any) => r.name as string))
-        _indexCache = new Set((idxInfo?.results ?? []).map((r: any) => r.name as string))
-      } catch {
-        _columnCache = new Set()
-        _indexCache = new Set()
-      }
-      return { columns: _columnCache!, indexes: _indexCache! }
-    })()
+  const load = async () => {
+    try {
+      const [colInfo, idxInfo] = await db.batch([
+        db.prepare("SELECT name FROM pragma_table_xinfo('documents')"),
+        db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='documents'"),
+      ])
+      _columnCache = new Set((colInfo?.results ?? []).map((r: any) => r.name as string))
+      _indexCache = new Set((idxInfo?.results ?? []).map((r: any) => r.name as string))
+    } catch {
+      _columnCache = new Set()
+      _indexCache = new Set()
+    }
+    return { columns: _columnCache!, indexes: _indexCache! }
   }
-  return _cacheInitPromise
+  if (!_cacheInit) _cacheInit = sharedOnce('documents schema cache', load, { waitMs: 5_000 })
+  return _cacheInit.get().catch(() => load())
 }
 
 /** Map a queryable field's logical type to a SQLite column affinity. */
@@ -143,5 +144,5 @@ export async function ensureScalarSchema(
 export function resetDocumentScalarSchemaCache(): void {
   _columnCache = null
   _indexCache = null
-  _cacheInitPromise = null
+  _cacheInit = null
 }

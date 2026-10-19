@@ -28,6 +28,7 @@
  */
 
 import type { Hono } from 'hono'
+import { sharedOnce } from '../../utils/shared-once'
 import semver from 'semver'
 import {
   registerPluginRoutes,
@@ -209,13 +210,13 @@ export function registerPlugins(
   }
 
   // ── 6. Lazy boot (wire) — one-shot
-  let wirePromise: Promise<WireResult> | undefined
+  // Shared across requests, never awaited forever (utils/shared-once.ts).
+  let bootEnv: Record<string, unknown> | undefined
+  const wiring = sharedOnce('plugin boot', () =>
+    wireRegisteredPlugins(list, { hooks: host.hookSystem, env: bootEnv ?? host.env ?? {} }, { strict: host.strict }))
   const boot = (envOverride?: Record<string, unknown>): Promise<WireResult> => {
-    if (!wirePromise) {
-      const env = envOverride ?? host.env ?? {}
-      wirePromise = wireRegisteredPlugins(list, { hooks: host.hookSystem, env }, { strict: host.strict })
-    }
-    return wirePromise
+    if (!bootEnv) bootEnv = envOverride
+    return wiring.get()
   }
 
   return {
