@@ -429,7 +429,7 @@ authRoutes.get('/me', requireAuth(), async (c) => {
     }
     
     const db = c.env.DB
-    const userData = await db.prepare('SELECT id, email, first_name, last_name, role, created_at FROM auth_user WHERE id = ?')
+    const userData = await db.prepare('SELECT id, email, first_name, last_name, role, created_at, email_verified FROM auth_user WHERE id = ?')
       .bind(user.userId)
       .first() as Record<string, any> | null
 

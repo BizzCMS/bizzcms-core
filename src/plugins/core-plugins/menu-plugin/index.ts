@@ -7,6 +7,7 @@ import { adminMenuRoutes } from './routes/admin-menu'
 import { renderMenuSettingsContent } from './templates/admin-menu-list.template'
 import { z } from 'zod'
 import type { D1Database } from '@cloudflare/workers-types'
+import { oncePerDeploy } from '../../../utils/once-per-deploy'
 
 export const menuPlugin = definePlugin({
   id: 'menu',
@@ -26,6 +27,8 @@ export const menuPlugin = definePlugin({
     if (!db) return
 
     try {
+      // Type, system items and plugin items: once per deploy (utils/once-per-deploy.ts), not on every isolate.
+      await oncePerDeploy(env, 'menu-setup', async () => {
       // 1. Register menu_item document type
       const typeRegistry = new DocumentTypeRegistry(db)
       await typeRegistry.register({
@@ -67,6 +70,7 @@ export const menuPlugin = definePlugin({
 
       // 3. Reconcile plugin-contributed menu items
       await reconcileMenuFromPlugins(db)
+      })
     } catch {
       // DB might not be ready (pre-migration) — skip silently
     }

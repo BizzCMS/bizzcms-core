@@ -28,6 +28,7 @@ import { resolveEmailProvider } from '../../../services/email/resolve-provider'
 import { CloudflareEmailProvider } from './services/cf-email-provider'
 import { DocumentTypeRegistry } from '../../../services/document-type-registry'
 import { z } from 'zod'
+import { oncePerDeploy } from '../../../utils/once-per-deploy'
 
 export const emailPluginV3 = definePlugin({
   id: 'email',
@@ -45,6 +46,8 @@ export const emailPluginV3 = definePlugin({
     // Register email_log document type (FK required by email-service writeLog).
     if (db) {
       try {
+        // Once per deploy (utils/once-per-deploy.ts), not on every isolate.
+        await oncePerDeploy(env, 'email-type', async () => {
         const typeRegistry = new DocumentTypeRegistry(db)
         await typeRegistry.register({
           id: 'email_log',
@@ -56,6 +59,7 @@ export const emailPluginV3 = definePlugin({
           source: 'plugin',
           queryableFields: [],
           settings: {},
+        })
         })
       } catch {
         // document_types table may not exist in pre-migration dev — skip.

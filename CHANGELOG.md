@@ -2,6 +2,14 @@
 
 ## BizzCMS
 
+### 3.0.0-beta.28-bizzcms.9
+
+- `/auth/me` also returns `email_verified`, so sites can require e-mail confirmation for new accounts (BizzCMS site accounts, `confirmSince`).
+
+### 3.0.0-beta.28-bizzcms.8 (packed locally, released as .9)
+
+- Setup runs once per deploy, not on every new isolate: bootstrap (migrations, collection sync, plugin bootstrap) and the setup in the two-factor, e-mail and menu plugins' onBoot. New `utils/once-per-deploy.ts`: the deploy is `CF_VERSION_METADATA.id` (wrangler `[version_metadata] binding = "CF_VERSION_METADATA"`), done steps are remembered in the isolate and in CACHE_KV (`bizz:once:<name>:<deployId>`). A failing step is not marked. Without the binding nothing changes (runs per isolate as before). Isolate state (KV wiring, collection registry, 2FA policy, e-mail service) is still set up on every isolate.
+
 ### 3.0.0-beta.28-bizzcms.7
 
 - Plugin wiring: a request waits at most 3 s (was 8 s) and a stuck wiring restarts after 8 s; `/files/*` (media) never waits for plugin wiring. Seen live: wiring still pending after 8 s on one isolate.

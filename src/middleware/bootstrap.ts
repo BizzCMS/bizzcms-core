@@ -7,6 +7,7 @@ import { bootstrapDocumentTypes, autoRegisterCollectionDocumentTypes, bootstrapD
 import { getHookSystem, hasHookSystem } from "../plugins/hooks/hook-system-singleton";
 import { getTelemetryService } from "../services/telemetry-service"
 import { BIZZCMS_VERSION } from "../utils/version";
+import { deployIdOf, doneThisDeploy, markDoneThisDeploy } from "../utils/once-per-deploy";
 import type { BizzCMSConfig } from "../app";
 import { setBranchLabel } from "../templates/layouts/admin-layout-catalyst.template";
 
@@ -104,6 +105,25 @@ export function isBetterAuthSessionPath(path: string): boolean {
   );
 }
 
+/** In-memory state every isolate needs, without any D1 writes: CACHE_KV wiring and the collection registry. */
+async function wireIsolateState(env: Record<string, unknown>, ctx: { waitUntil(p: Promise<unknown>): void }): Promise<void> {
+  try {
+    const kv = env.CACHE_KV as KVNamespace | undefined
+    if (kv) {
+      const { setGlobalKVNamespace } = await import("../plugins/cache/services/cache")
+      setGlobalKVNamespace(kv)
+      const { setGlobalCatalogKv, loadKvCatalog } = await import("../plugins/cache/services/catalog")
+      setGlobalCatalogKv(kv)
+      ctx.waitUntil(loadKvCatalog())
+    }
+  } catch { /* KV wiring optional */ }
+  try {
+    getCollectionRegistry().register(await loadCollectionConfigs())
+  } catch (error) {
+    console.error("[Bootstrap] Error populating collection registry:", error)
+  }
+}
+
 /**
  * Bootstrap middleware that ensures system initialization
  * Runs once per worker instance
@@ -122,6 +142,14 @@ export function bootstrapMiddleware(config: BizzCMSConfig = {}, allPlugins?: Arr
 
     // Skip if already bootstrapped in this worker instance
     if (bootstrapComplete) {
+      return next();
+    }
+
+    // Once per deploy (utils/once-per-deploy.ts): when this deployed version already ran the D1 setup, a new
+    // isolate only wires its in-memory state and serves at once (no ~3 s of D1 writes per cold start).
+    if (deployIdOf(c.env) && (await doneThisDeploy(c.env, "bootstrap"))) {
+      await wireIsolateState(c.env as any, c.executionCtx);
+      bootstrapComplete = true;
       return next();
     }
 
@@ -167,6 +195,7 @@ export function bootstrapMiddleware(config: BizzCMSConfig = {}, allPlugins?: Arr
             await bootstrapDefaultContent(c.env.DB).catch((e) =>
               console.error("[Bootstrap] KV fast-path: error seeding default content:", e)
             )
+            await markDoneThisDeploy(c.env, "bootstrap")
             bootstrapComplete = true
             return next()
           }
@@ -302,6 +331,7 @@ export function bootstrapMiddleware(config: BizzCMSConfig = {}, allPlugins?: Arr
       // Mark bootstrap as complete for this worker instance and persist to KV
       // so subsequent cold-start isolates can skip the D1 work entirely.
       bootstrapComplete = true;
+      await markDoneThisDeploy(c.env, "bootstrap");
       console.log("[Bootstrap] System initialization completed");
       try {
         const cacheKv = (c.env as any).CACHE_KV as KVNamespace | undefined
