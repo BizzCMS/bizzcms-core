@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import { requireAuth } from '../middleware'
 import type { Bindings, Variables } from '../app'
-import { MediaDocumentService } from '../services/media-documents'
+import { MediaDocumentService, parseMediaSource, cleanMediaText } from '../services/media-documents'
 import { getRequestTenant } from '../services/document-request-context'
 
 // Helper function to generate short IDs (replacement for nanoid)
@@ -672,10 +672,26 @@ apiMediaRoutes.patch('/:id', async (c) => {
       return c.json({ error: 'Permission denied' }, 403)
     }
 
-    const { alt, caption, tags } = body as { alt?: string; caption?: string; tags?: string[] }
-    const meta: { alt?: string | null; caption?: string | null; tags?: string[] } = {}
+    const { alt, caption, tags, source, credit, license } = body as {
+      alt?: string; caption?: string; tags?: string[]; source?: string | null; credit?: string | null; license?: string | null
+    }
+    const meta: { alt?: string | null; caption?: string | null; tags?: string[]; source?: string | null; credit?: string | null; license?: string | null } = {}
     if (alt !== undefined) meta.alt = alt ?? null
     if (caption !== undefined) meta.caption = caption ?? null
+    // Source record: stored only, never rendered publicly. source must be an http(s) link.
+    if (source !== undefined) {
+      const parsed = parseMediaSource(source)
+      if ('error' in parsed) return c.json({ error: parsed.error }, 400)
+      meta.source = parsed.value
+    }
+    if (credit !== undefined) {
+      if (credit !== null && typeof credit !== 'string') return c.json({ error: 'credit must be a string' }, 400)
+      meta.credit = cleanMediaText(credit)
+    }
+    if (license !== undefined) {
+      if (license !== null && typeof license !== 'string') return c.json({ error: 'license must be a string' }, 400)
+      meta.license = cleanMediaText(license)
+    }
     if (tags !== undefined) meta.tags = Array.isArray(tags) ? tags : []
 
     if (Object.keys(meta).length === 0) {

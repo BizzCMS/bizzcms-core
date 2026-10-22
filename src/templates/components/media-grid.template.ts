@@ -8,6 +8,10 @@ export interface MediaFile {
   thumbnail_url?: string;
   alt?: string;
   caption?: string;
+  /** Source record (admin only, never rendered publicly). */
+  source?: string;
+  credit?: string;
+  license?: string;
   tags: string[];
   uploaded_at: string;
   fileSize: string;
@@ -51,6 +55,13 @@ export function renderMediaGrid(data: MediaGridData): string {
         .join("")}
     </div>
   `;
+}
+
+/** Admin-only neutral badge on image cards that have no source recorded. */
+export function renderNoSourceBadge(file: MediaFile): string {
+  return file.isImage && !file.source
+    ? `<span class="inline-block px-2 py-0.5 text-xs rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400" title="No source link recorded for this image" data-no-source>No source</span>`
+    : "";
 }
 
 export function renderMediaFileCard(
@@ -122,6 +133,7 @@ export function renderMediaFileCard(
             </div>
             <div class="mt-1 flex items-center text-sm text-zinc-500 dark:text-zinc-400">
               <span>${file.uploadedAt}</span>
+              ${renderNoSourceBadge(file) ? `<span class="mx-2">•</span>${renderNoSourceBadge(file)}` : ""}
               ${
                 file.tags.length > 0
                   ? `
@@ -236,6 +248,7 @@ export function renderMediaFileCard(
             file.uploadedAt
           }</span>
         </div>
+        ${renderNoSourceBadge(file) ? `<div class="mt-2">${renderNoSourceBadge(file)}</div>` : ""}
         ${
           file.tags.length > 0
             ? `

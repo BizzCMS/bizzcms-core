@@ -2,6 +2,10 @@
 
 ## BizzCMS
 
+### 3.0.0-beta.28-bizzcms.10 (Unreleased, packed locally)
+
+- Image source records: every media image can store `source` (link to the original page, http/https only), `credit` (author) and `license` (free text) in its media_asset data (no migration; the legacy `media` table is untouched). Admin > Media > file details has Source link, Author and Licence (with suggestions) under Tags; `PATCH /api/media/:id` accepts `source`, `credit`, `license` (invalid link: 400); the admin media grid shows a neutral "No source" badge on images without a source. Stored only: nothing is rendered on public pages.
+
 ### 3.0.0-beta.28-bizzcms.9
 
 - `/auth/me` also returns `email_verified`, so sites can require e-mail confirmation for new accounts (BizzCMS site accounts, `confirmSince`).

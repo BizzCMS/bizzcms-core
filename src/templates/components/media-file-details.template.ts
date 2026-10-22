@@ -9,6 +9,13 @@ export interface MediaFileDetailsData {
   }
 }
 
+const escAttr = (v: string | undefined) =>
+  (v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+const INPUT_CLASS = 'w-full rounded-lg bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-950 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 ring-1 ring-inset ring-zinc-950/10 dark:ring-white/10 focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 focus:outline-none transition-colors'
+
+export const MEDIA_LICENSE_SUGGESTIONS = ['Unsplash License', 'Pexels License', 'Pixabay Content License', 'Own photo', 'Client supplied']
+
 export function renderMediaFileDetails(data: MediaFileDetailsData): string {
   const { file } = data
   
@@ -140,6 +147,51 @@ export function renderMediaFileDetails(data: MediaFileDetailsData): string {
               class="w-full rounded-lg bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-950 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 ring-1 ring-inset ring-zinc-950/10 dark:ring-white/10 focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 focus:outline-none transition-colors"
               placeholder="tag1, tag2, tag3"
             >
+          </div>
+
+          <!-- Source record: stored for the owner, never shown on public pages -->
+          <div>
+            <label class="block text-sm font-medium text-zinc-950 dark:text-white mb-1" for="media-source">Source link</label>
+            <input
+              type="url"
+              id="media-source"
+              name="source"
+              value="${escAttr(file.source)}"
+              maxlength="500"
+              class="${INPUT_CLASS}"
+              placeholder="https://... (page the image came from)"
+            >
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-zinc-950 dark:text-white mb-1" for="media-credit">Author</label>
+              <input
+                type="text"
+                id="media-credit"
+                name="credit"
+                value="${escAttr(file.credit)}"
+                maxlength="200"
+                class="${INPUT_CLASS}"
+                placeholder="Photographer or author"
+              >
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-zinc-950 dark:text-white mb-1" for="media-license">Licence</label>
+              <input
+                type="text"
+                id="media-license"
+                name="license"
+                list="media-license-options"
+                value="${escAttr(file.license)}"
+                maxlength="200"
+                class="${INPUT_CLASS}"
+                placeholder="Licence"
+              >
+              <datalist id="media-license-options">
+                ${MEDIA_LICENSE_SUGGESTIONS.map(l => `<option value="${l}"></option>`).join('')}
+              </datalist>
+            </div>
           </div>
 
           <div class="flex justify-between">

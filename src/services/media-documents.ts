@@ -22,6 +22,9 @@ export interface MediaUploadMeta {
   alt?: string
   caption?: string
   tags?: string[]
+  source?: string | null
+  credit?: string | null
+  license?: string | null
 }
 
 export interface MediaUrlOptions {
@@ -51,6 +54,33 @@ export function deriveMediaThumbnailUrl(r2Key: string, mimeType: string, opts: M
     : null
 }
 
+/**
+ * Image source records (owner rule: every image has its source recorded, never shown publicly).
+ * `source` is the URL of the original page (http/https only), `credit` the author/photographer,
+ * `license` free text. Stored in the media_asset data; no public template reads them.
+ */
+export const MEDIA_SOURCE_MAX = 500
+
+/** Returns the cleaned source URL (null when empty) or an error message when it is not a valid http(s) URL. */
+export function parseMediaSource(value: unknown): { value: string | null } | { error: string } {
+  if (value === undefined || value === null) return { value: null }
+  if (typeof value !== 'string') return { error: 'Source must be a link (http or https)' }
+  const v = value.trim()
+  if (!v) return { value: null }
+  if (v.length > MEDIA_SOURCE_MAX) return { error: `Source link is too long (max ${MEDIA_SOURCE_MAX} characters)` }
+  let u: URL
+  try { u = new URL(v) } catch { return { error: 'Source must be a valid link starting with http:// or https://' } }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return { error: 'Source must be a valid link starting with http:// or https://' }
+  return { value: v }
+}
+
+/** Trim a free-text source field (credit, licence); empty becomes null. */
+export function cleanMediaText(value: unknown, max = 200): string | null {
+  if (typeof value !== 'string') return null
+  const v = value.trim().slice(0, max)
+  return v || null
+}
+
 function formatFileSize(bytes: number): string {
   if (!bytes) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -75,6 +105,9 @@ export function mediaDocToRecord(doc: Document, opts: MediaUrlOptions = {}) {
     thumbnail_url: deriveMediaThumbnailUrl(d.r2Key ?? '', d.mimeType ?? '', opts),
     alt: d.alt ?? null,
     caption: d.caption ?? null,
+    source: d.source ?? null,
+    credit: d.credit ?? null,
+    license: d.license ?? null,
     tags: Array.isArray(d.tags) ? d.tags : [],
     uploaded_by: doc.ownerId ?? doc.createdBy ?? null,
     uploaded_at: doc.createdAt,
@@ -97,6 +130,9 @@ export function mediaDocToFile(doc: Document, opts: MediaUrlOptions = {}) {
     thumbnail_url: deriveMediaThumbnailUrl(d.r2Key ?? '', mime, opts) ?? undefined,
     alt: d.alt ?? undefined,
     caption: d.caption ?? undefined,
+    source: d.source || undefined,
+    credit: d.credit || undefined,
+    license: d.license || undefined,
     tags: Array.isArray(d.tags) ? d.tags : [],
     uploaded_at: iso,
     fileSize: formatFileSize(d.size ?? 0),
@@ -249,10 +285,10 @@ export class MediaDocumentService {
       .run()
   }
 
-  /** Update alt/caption/tags on a media_asset document (saveDraft + publish atomically). */
+  /** Update alt/caption/tags and the source record (source/credit/license) on a media_asset document (saveDraft + publish atomically). */
   async updateMetadata(
     rootId: string,
-    meta: { alt?: string | null; caption?: string | null; tags?: string[] },
+    meta: { alt?: string | null; caption?: string | null; tags?: string[]; source?: string | null; credit?: string | null; license?: string | null },
     updatedBy?: string,
   ): Promise<Document> {
     const svc = new DocumentsService(this.db, { queryableFields: MEDIA_QUERYABLE, tenantId: this.tenantId, maxVersionsPerRoot: 5 })

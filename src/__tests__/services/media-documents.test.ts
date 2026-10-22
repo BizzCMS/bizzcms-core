@@ -12,6 +12,8 @@ import {
   mediaDocToFile,
   deriveMediaPublicUrl,
   deriveMediaThumbnailUrl,
+  parseMediaSource,
+  cleanMediaText,
 } from '../../services/media-documents'
 
 const META = {
@@ -85,6 +87,33 @@ describe('media-as-document (Phase 6)', () => {
     expect(uploadedDate.getFullYear()).toBeGreaterThanOrEqual(2024)
     // Sanity: uploaded_at from the ISO string must NOT be epoch (1970)
     expect(uploadedDate.getFullYear()).not.toBe(1970)
+  })
+
+  it('stores source, credit and license in the document data and exposes them to admin views', async () => {
+    const svc = new MediaDocumentService(db)
+    const doc = await svc.createFromUpload(META, 'u1')
+    expect(mediaDocToFile(doc).source).toBeUndefined()
+    await svc.updateMetadata(doc.rootId, { source: 'https://unsplash.com/photos/abc', credit: 'Ana Horvat', license: 'Unsplash License' }, 'u1')
+    const after = await svc.getByRootId(doc.rootId)
+    const file = mediaDocToFile(after)
+    expect(file.source).toBe('https://unsplash.com/photos/abc')
+    expect(file.credit).toBe('Ana Horvat')
+    expect(file.license).toBe('Unsplash License')
+    expect(mediaDocToRecord(after).source).toBe('https://unsplash.com/photos/abc')
+    // other metadata survives a source-only update
+    expect(after.data.alt).toBe('Hero')
+  })
+
+  it('parseMediaSource accepts http(s) links only', () => {
+    expect(parseMediaSource('  https://example.com/a?b=1 ')).toEqual({ value: 'https://example.com/a?b=1' })
+    expect(parseMediaSource('')).toEqual({ value: null })
+    expect(parseMediaSource(null)).toEqual({ value: null })
+    expect('error' in parseMediaSource('javascript:alert(1)')).toBe(true)
+    expect('error' in parseMediaSource('ftp://example.com/a.jpg')).toBe(true)
+    expect('error' in parseMediaSource('not a link')).toBe(true)
+    expect('error' in parseMediaSource(42)).toBe(true)
+    expect(cleanMediaText('  Own photo ')).toBe('Own photo')
+    expect(cleanMediaText('   ')).toBeNull()
   })
 
   it('createFromUpload produces a doc whose uploadedAt is a valid current-year date (issue #889)', async () => {

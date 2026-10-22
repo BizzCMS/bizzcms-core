@@ -5,8 +5,8 @@ import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-type
 import { requireAuth, requireRole } from '../middleware'
 import { renderMediaLibraryPage, MediaLibraryPageData, FolderStats, TypeStats } from '../templates/pages/admin-media-library.template'
 import { renderMediaFileDetails, MediaFileDetailsData } from '../templates/components/media-file-details.template'
-import { MediaFile } from '../templates/components/media-grid.template'
-import { MediaDocumentService, mediaDocToFile } from '../services/media-documents'
+import { MediaFile, renderNoSourceBadge } from '../templates/components/media-grid.template'
+import { MediaDocumentService, mediaDocToFile, parseMediaSource, cleanMediaText } from '../services/media-documents'
 import { getRequestTenant } from '../services/document-request-context'
 import { PluginService } from '../services/plugin-service'
 import type { Bindings, Variables } from '../app'
@@ -470,7 +470,30 @@ adminMediaRoutes.put('/:id', async (c) => {
     const tagsString = formData.get('tags') as string || ''
     const tags = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(t => t) : []
 
-    await mediaSvc.updateMetadata(rootId, { alt, caption, tags }, user!.userId)
+    // Source record (stored only, never rendered publicly). Fields absent from the form are left alone.
+    const meta: Parameters<MediaDocumentService['updateMetadata']>[1] = { alt, caption, tags }
+    if (formData.has('source')) {
+      const rawSource = String(formData.get('source') ?? '')
+      const existing = (doc.data as Record<string, any>).source
+      // An unchanged legacy value (older free-text source) is kept as is, anything new must be a valid link.
+      if (rawSource.trim() === (existing ?? '')) {
+        meta.source = existing ?? null
+      } else {
+        const parsed = parseMediaSource(rawSource)
+        if ('error' in parsed) {
+          return c.html(html`
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              ${parsed.error}
+            </div>
+          `)
+        }
+        meta.source = parsed.value
+      }
+    }
+    if (formData.has('credit')) meta.credit = cleanMediaText(formData.get('credit'))
+    if (formData.has('license')) meta.license = cleanMediaText(formData.get('license'))
+
+    await mediaSvc.updateMetadata(rootId, meta, user!.userId)
 
     // R12: keep legacy media row in sync
     try {
@@ -791,6 +814,7 @@ function generateMediaItemHTML(file: any): string {
           <span class="text-xs text-gray-500">${file.fileSize}</span>
           <span class="text-xs text-gray-500">${file.uploadedAt}</span>
         </div>
+        ${renderNoSourceBadge(file) ? `<div class="mt-2">${renderNoSourceBadge(file)}</div>` : ''}
         ${file.tags.length > 0 ? `
           <div class="flex flex-wrap gap-1 mt-2">
             ${file.tags.slice(0, 2).map((tag: string) => `
