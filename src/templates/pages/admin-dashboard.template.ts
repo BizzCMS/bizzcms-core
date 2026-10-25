@@ -301,7 +301,7 @@ function renderAnalyticsChart(): string {
       <!-- Hidden div to trigger HTMX polling -->
       <div
         hx-get="/admin/dashboard/api/metrics"
-        hx-trigger="every 1s"
+        hx-trigger="every 30s [document.visibilityState === 'visible']"
         hx-swap="none"
         style="display: none;"
       ></div>
@@ -313,13 +313,14 @@ function renderAnalyticsChart(): string {
         const ctx = document.getElementById('requestsChart');
         if (!ctx) return;
 
-        // Initialize with last 60 seconds of data (1 data point per second)
+        // One data point per metrics poll (every 30 s, only while the tab is visible)
+        const pollSeconds = 30;
         const maxDataPoints = 60;
         const labels = [];
         const data = [];
 
         for (let i = maxDataPoints - 1; i >= 0; i--) {
-          labels.push(\`-\${i}s\`);
+          labels.push(\`-\${i * pollSeconds}s\`);
           data.push(0);
         }
 
@@ -420,10 +421,10 @@ function renderAnalyticsChart(): string {
               chart.data.datasets[0].data.shift();
               chart.data.datasets[0].data.push(metrics.requestsPerSecond);
 
-              // Regenerate labels to maintain -60s to now format
+              // Regenerate labels to maintain the "oldest to now" format
               const newLabels = [];
               for (let i = maxDataPoints - 1; i >= 1; i--) {
-                newLabels.push(\`-\${i}s\`);
+                newLabels.push(\`-\${i * pollSeconds}s\`);
               }
               newLabels.push('now');
               chart.data.labels = newLabels;
@@ -663,7 +664,7 @@ function renderSystemStatus(): string {
         id="system-status-container"
         class="p-6"
         hx-get="/admin/dashboard/system-status"
-        hx-trigger="load, every 30s"
+        hx-trigger="load, every 30s [document.visibilityState === 'visible']"
         hx-swap="innerHTML"
       >
         <!-- Loading skeleton with gradient -->

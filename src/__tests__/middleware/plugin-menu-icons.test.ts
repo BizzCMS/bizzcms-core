@@ -17,6 +17,7 @@ import { PLUGIN_REGISTRY } from '../../plugins/manifest-registry'
 // The module keeps ICON_SVG/resolveIcon private, so drive them the way the app does: through the
 // exported middleware, with a context stub that captures what it sets on `pluginMenuItems`.
 const { pluginMenuMiddleware } = await import('../../middleware/plugin-menu')
+const { clearActivePluginSlugsCache } = await import('../../services/active-plugin-slugs')
 
 type MenuItem = { label: string; path: string; icon: string }
 
@@ -30,18 +31,19 @@ type MenuItem = { label: string; path: string; icon: string }
  * version of this file made exactly that mistake and stayed green against the broken code.
  */
 async function renderMenu(activeSlugs: string[]) {
+  clearActivePluginSlugsCache() // the active-plugin list is cached per isolate
   const captured: Record<string, unknown> = {}
   const c = {
     env: {
       DB: {
         prepare: () => ({
           bind: () => ({ all: async () => ({ results: activeSlugs.map((slug) => ({ slug })) }) }),
-          all: async () => ({ results: [] }),
+          all: async () => ({ results: activeSlugs.map((slug) => ({ slug })) }),
           first: async () => null,
         }),
       },
     },
-    req: { path: '/admin', url: 'http://localhost/admin' },
+    req: { path: '/admin', url: 'http://localhost/admin', header: () => undefined },
     res: new Response('<html></html>', { headers: { 'content-type': 'text/html' } }),
     get: (k: string) => captured[k],
     set: (k: string, v: unknown) => {

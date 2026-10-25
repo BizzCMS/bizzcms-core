@@ -80,7 +80,15 @@ export class RbacService {
 
   private _docs?: DocumentsService
 
-  constructor(private db: D1Database, private kv?: KVNamespace) {}
+  /**
+   * `waitUntil` (optional): when given, the KV write of a freshly computed permission list is handed
+   * to it instead of being awaited, so the request does not wait for that write.
+   */
+  constructor(
+    private db: D1Database,
+    private kv?: KVNamespace,
+    private waitUntil?: (p: Promise<unknown>) => void,
+  ) {}
 
   // ── Document access helpers ──────────────────────────────────────────────────
 
@@ -305,7 +313,12 @@ export class RbacService {
     }
     const result = [...out].sort()
     if (this.kv) {
-      await this.kv.put(`rbac:perms:${userId}`, JSON.stringify(result), { expirationTtl: 60 })
+      // A failed cache write must never fail the request; the next request just recomputes.
+      const write = Promise.resolve(
+        this.kv.put(`rbac:perms:${userId}`, JSON.stringify(result), { expirationTtl: 60 }),
+      ).catch((err) => console.error('[rbac] permissions cache write failed', err))
+      if (this.waitUntil) this.waitUntil(write)
+      else await write
     }
     return result
   }

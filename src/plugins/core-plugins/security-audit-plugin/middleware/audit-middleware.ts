@@ -44,13 +44,31 @@ async function getPluginSettings(db: any): Promise<SecurityAuditSettings> {
   return DEFAULT_SETTINGS
 }
 
+// Per-isolate cache of the plugin-active check: it ran on every /auth/* request. 60 s, so an
+// activation/deactivation reaches every isolate within a minute. A failed lookup (typically the
+// legacy `plugins` table is absent) is remembered as "inactive" for only 15 s, so a transient D1
+// error cannot switch the audit/lockout off for long.
+const PLUGIN_ACTIVE_TTL_MS = 60_000
+const PLUGIN_ACTIVE_ERROR_TTL_MS = 15_000
+let pluginActiveCache: { value: boolean; expiresAt: number } | null = null
+
+/** Drop the cached plugin-active answer (tests). */
+export function clearSecurityAuditActiveCache(): void {
+  pluginActiveCache = null
+}
+
 async function isPluginActive(db: any): Promise<boolean> {
+  const now = Date.now()
+  if (pluginActiveCache && pluginActiveCache.expiresAt > now) return pluginActiveCache.value
   try {
     const result = await db.prepare(
       "SELECT status FROM plugins WHERE id = 'security-audit'"
     ).first() as { status: string } | null
-    return result?.status === 'active'
+    const value = result?.status === 'active'
+    pluginActiveCache = { value, expiresAt: now + PLUGIN_ACTIVE_TTL_MS }
+    return value
   } catch {
+    pluginActiveCache = { value: false, expiresAt: now + PLUGIN_ACTIVE_ERROR_TTL_MS }
     return false
   }
 }

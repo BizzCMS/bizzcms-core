@@ -429,6 +429,10 @@ authRoutes.get('/me', requireAuth(), async (c) => {
     }
     
     const db = c.env.DB
+    // The user row and the profile document are independent reads: start both, so the request
+    // pays one D1 round trip instead of two in sequence.
+    const customDataPromise = getCustomData(db, user.userId)
+    customDataPromise.catch(() => {}) // observed below, or ignored when the user row is missing
     const userData = await db.prepare('SELECT id, email, first_name, last_name, role, created_at, email_verified FROM auth_user WHERE id = ?')
       .bind(user.userId)
       .first() as Record<string, any> | null
@@ -437,7 +441,7 @@ authRoutes.get('/me', requireAuth(), async (c) => {
       return c.json({ error: 'User not found' }, 404)
     }
 
-    const customData = await getCustomData(db, user.userId)
+    const customData = await customDataPromise
     return c.json({ user: { ...userData, ...customData } })
   } catch (error) {
     console.error('Get user error:', error)

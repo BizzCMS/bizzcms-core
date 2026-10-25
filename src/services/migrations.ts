@@ -21,6 +21,14 @@ export interface MigrationStatus {
   migrations: Migration[]
 }
 
+export const MIGRATION_STATUS_TTL_MS = 5 * 60 * 1000
+let statusCache: { status: MigrationStatus; expiresAt: number } | null = null
+
+/** Drop the cached migration status (tests). */
+export function clearMigrationStatusCache(): void {
+  statusCache = null
+}
+
 export class MigrationService {
   constructor(private db: D1Database) {}
 
@@ -37,8 +45,10 @@ export class MigrationService {
    */
   async getAvailableMigrations(): Promise<Migration[]> {
     const migrations: Migration[] = []
+    // Read-only: schema repairs (ensureSchemaCompatibility) run once per deploy from bootstrap and
+    // from the two-factor plugin's onBoot. They used to run here too, which turned every status
+    // request into ~8 extra sequential D1 queries.
     const appliedMigrations = await this.getD1AppliedMigrations()
-    await this.ensureSchemaCompatibility()
 
     // Use bundled migrations as the source of truth
     for (const bundled of bundledMigrations) {
@@ -177,6 +187,17 @@ export class MigrationService {
       lastApplied,
       migrations
     }
+  }
+
+  /**
+   * Migration status for the admin banner, cached per isolate for 5 minutes (the banner is a hint,
+   * not a gate). Failures are not cached.
+   */
+  async getMigrationStatusCached(now: number = Date.now()): Promise<MigrationStatus> {
+    if (statusCache && statusCache.expiresAt > now) return statusCache.status
+    const status = await this.getMigrationStatus()
+    statusCache = { status, expiresAt: now + MIGRATION_STATUS_TTL_MS }
+    return status
   }
 
   /**

@@ -4,6 +4,7 @@ import { listMenuItems, buildSidebarTree } from '../plugins/core-plugins/menu-pl
 import type { SidebarItem } from '../plugins/core-plugins/menu-plugin/services/menu-repository'
 import { resolveIcon } from '../services/menu-icons'
 import { escapeHtml } from '../utils/sanitize'
+import { getPluginCacheEpoch } from './plugin-middleware'
 
 const MARKER_START = '<!-- ADMIN_SIDEBAR_NAV_ITEMS -->'
 const MARKER_END = '<!-- /ADMIN_SIDEBAR_NAV_ITEMS -->'
@@ -113,7 +114,22 @@ const ACCORDION_SCRIPT = `
   })
 </script>`
 
+// Per-isolate cache of "is the menu plugin active": 30 s, and dropped when a plugin is
+// activated/deactivated in this isolate. Failures are not cached.
+const MENU_ACTIVE_TTL_MS = 30_000
+let menuActiveCache: { value: boolean; expiresAt: number; epoch: number } | null = null
+
+/** For tests. */
+export function clearMenuPluginActiveCache(): void {
+  menuActiveCache = null
+}
+
 async function isMenuPluginActive(db: any): Promise<boolean> {
+  const epoch = getPluginCacheEpoch()
+  const now = Date.now()
+  if (menuActiveCache && menuActiveCache.epoch === epoch && menuActiveCache.expiresAt > now) {
+    return menuActiveCache.value
+  }
   try {
     // Plugins live in documents (type_id='plugin', slug=pluginId) — not the legacy plugins table
     const row = await db
@@ -126,8 +142,9 @@ async function isMenuPluginActive(db: any): Promise<boolean> {
       )
       .first() as { status: string } | null
     // Not yet in DB (never installed/activated) → off by default
-    if (!row) return false
-    return row.status === 'active'
+    const value = !!row && row.status === 'active'
+    menuActiveCache = { value, expiresAt: now + MENU_ACTIVE_TTL_MS, epoch }
+    return value
   } catch {
     return false
   }

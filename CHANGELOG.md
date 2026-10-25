@@ -2,6 +2,16 @@
 
 ## BizzCMS
 
+### 3.0.0-beta.28-bizzcms.11 (Unreleased, packed locally)
+
+- Fewer sequential D1/KV round trips per admin request (trivial admin endpoints took 0.5-0.75 s wall for ~12 ms CPU because ~13 lookups ran one after another). Behaviour and permission checks are unchanged.
+- Admin permissions: the user's permissions are now loaded once, BEFORE `requireRbac('portal','access')`, so the portal gate reads them from the request instead of running its own 2 D1 queries; the nav/landing middleware reuses the same list. The KV write of a freshly computed permission list (TTL still 60 s: role-matrix saves and role assignment drop it, other role edits do not) is no longer awaited (`RbacService` takes an optional `waitUntil`), and a failing write no longer fails the request.
+- Admin sidebar: the active-plugin list is read once per isolate (30 s, dropped at once when a plugin is activated/deactivated in that isolate) instead of 2 queries per request (`services/active-plugin-slugs.ts`); the menu plugin's active check is cached the same way; JSON requests (`/admin/api/*`, `Accept: application/json` without HTML) skip the plugin-menu work entirely.
+- `GET /admin/api/migrations/status` no longer re-runs `ensureSchemaCompatibility()` (8 sequential queries; it still runs once per deploy at bootstrap and in the two-factor plugin's onBoot) and caches its result 5 minutes per isolate. The admin layout asks at most once per browser session: a "0 pending" answer is kept in sessionStorage for 30 minutes.
+- Dashboard: metrics poll every 30 s (was 1 s), the system-status poll every 30 s, both only while the tab is visible; the chart labels follow the 30 s step.
+- `GET /auth/me` reads the user row and the profile document in parallel. The security-audit middleware caches its plugin-active check per isolate (60 s; a failed lookup 15 s) instead of one query on every `/auth/*` request.
+- Not changed: Better Auth `session.cookieCache` (the session cookie is only refreshed on the auth handler, not on the app's `getSession` call, so it would help for the first minutes after sign-in only, while a revoked session or changed role/super-admin flag would stay valid until it expires).
+
 ### 3.0.0-beta.28-bizzcms.10 (Unreleased, packed locally)
 
 - Image source records: every media image can store `source` (link to the original page, http/https only), `credit` (author) and `license` (free text) in its media_asset data (no migration; the legacy `media` table is untouched). Admin > Media > file details has Source link, Author and Licence (with suggestions) under Tags; `PATCH /api/media/:id` accepts `source`, `credit`, `license` (invalid link: 400); the admin media grid shows a neutral "No source" badge on images without a source. Stored only: nothing is rendered on public pages.

@@ -577,6 +577,30 @@ export function createBizzCMSApp(config: BizzCMSConfig = {}): BizzCMSApp {
   // Admin panel access control: require authentication and dynamic RBAC portal
   // access. Legacy `users.role` no longer decides who can enter /admin/*.
   app.use('/admin/*', requireAuth())
+  // Load the signed-in user's effective permissions ONCE, before the portal gate, so
+  // requireRbac('portal','access') (and every later requireRbac on /admin/*) reads them from the
+  // request context instead of running its own two D1 queries. Fail closed when they are unavailable.
+  app.use('/admin/*', async (c, next) => {
+    const user = c.get('user') as { userId?: string } | undefined
+    if (!user?.userId) return next()
+    try {
+      const { RbacService } = await import('./services/rbac')
+      // The KV write of a fresh permission list is not awaited (waitUntil) when the runtime has a context.
+      const waitUntil = (p: Promise<unknown>) => {
+        try {
+          c.executionCtx.waitUntil(p)
+        } catch {
+          // No execution context (tests / Node): the write simply finishes on its own.
+        }
+      }
+      const perms = await new RbacService(c.env.DB, c.env.CACHE_KV, waitUntil).permissionsForUser(user.userId)
+      c.set('rbacPerms', perms)
+    } catch (err) {
+      console.error('[admin] RBAC permissions unavailable', err)
+      return c.text('Service temporarily unavailable', 503)
+    }
+    return next()
+  })
   app.use('/admin/*', requireRbac('portal', 'access'))
 
   // Plugin dynamic menu items for admin sidebar
@@ -604,18 +628,8 @@ export function createBizzCMSApp(config: BizzCMSConfig = {}): BizzCMSApp {
     const user = c.get('user') as { userId?: string } | undefined
     if (!user?.userId) return next()
 
-    let perms: string[] = []
-    try {
-      const { RbacService } = await import('./services/rbac')
-      perms = await new RbacService(c.env.DB, c.env.CACHE_KV).permissionsForUser(user.userId)
-    } catch (err) {
-      // Fail closed: without the permission list we cannot tell what this user may reach.
-      console.error('[admin] RBAC permissions unavailable', err)
-      return c.text('Service temporarily unavailable', 503)
-    }
-
-    // Cache for requireRbac fast-path — avoids a DB hit per middleware call.
-    c.set('rbacPerms', perms)
+    // Loaded by the middleware ahead of the portal gate (also used by requireRbac's fast path).
+    const perms = (c.get('rbacPerms') as string[] | undefined) ?? []
 
     // Dashboard landing: if the user can't view the dashboard, send them to the
     // first section they do have access to (instead of an empty/forbidden page).

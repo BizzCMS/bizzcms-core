@@ -518,10 +518,30 @@ export function renderAdminLayoutCatalyst(
       }
     }
 
-    // Check for pending migrations on page load
+    // Check for pending migrations on page load, at most once per browser session:
+    // a result that said "0 pending" is remembered in sessionStorage for 30 minutes.
+    var MIGRATION_CHECK_KEY = 'migrationCheck';
+    var MIGRATION_CHECK_TTL_MS = 30 * 60 * 1000;
+
+    function migrationCheckIsFresh() {
+      try {
+        var raw = sessionStorage.getItem(MIGRATION_CHECK_KEY);
+        if (!raw) return false;
+        var saved = JSON.parse(raw);
+        return saved && saved.pending === 0 && (Date.now() - saved.at) < MIGRATION_CHECK_TTL_MS;
+      } catch (e) {
+        return false;
+      }
+    }
+
     async function checkPendingMigrations() {
       // Don't check if user dismissed the banner in this session
       if (sessionStorage.getItem('migrationBannerDismissed') === 'true') {
+        return;
+      }
+
+      // Skip the request when a recent check in this session found nothing pending
+      if (migrationCheckIsFresh()) {
         return;
       }
 
@@ -529,12 +549,19 @@ export function renderAdminLayoutCatalyst(
         const response = await fetch('/admin/api/migrations/status');
         if (response.ok) {
           const data = await response.json();
-          if (data.success && data.data && data.data.pendingMigrations > 0) {
-            const banner = document.getElementById('migration-banner');
-            const countElement = document.getElementById('migration-count');
-            if (banner && countElement) {
-              countElement.textContent = data.data.pendingMigrations;
-              banner.classList.remove('hidden');
+          if (data.success && data.data) {
+            if (data.data.pendingMigrations === 0) {
+              try {
+                sessionStorage.setItem(MIGRATION_CHECK_KEY, JSON.stringify({ pending: 0, at: Date.now() }));
+              } catch (e) { /* storage unavailable: just check again next time */ }
+            }
+            if (data.data.pendingMigrations > 0) {
+              const banner = document.getElementById('migration-banner');
+              const countElement = document.getElementById('migration-count');
+              if (banner && countElement) {
+                countElement.textContent = data.data.pendingMigrations;
+                banner.classList.remove('hidden');
+              }
             }
           }
         }

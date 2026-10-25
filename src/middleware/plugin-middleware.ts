@@ -10,7 +10,16 @@ import type { D1Database } from '@cloudflare/workers-types'
 // Invalidated by calling invalidatePluginStatusCache() after activate/deactivate.
 const _pluginStatusCache = new Map<string, boolean>()
 
+// Bumped on every invalidation so other per-isolate plugin caches (e.g. the active-plugin list
+// behind the admin sidebar) can tell that a plugin was just activated/deactivated in this isolate.
+let _pluginCacheEpoch = 0
+
+export function getPluginCacheEpoch(): number {
+  return _pluginCacheEpoch
+}
+
 export function invalidatePluginStatusCache(pluginId?: string): void {
+  _pluginCacheEpoch++
   if (pluginId) {
     _pluginStatusCache.delete(pluginId)
   } else {

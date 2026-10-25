@@ -51,8 +51,8 @@ describe('MigrationService D45 — documents generated columns self-heal (data-d
     const colsBefore = sqlite.prepare("SELECT name FROM pragma_table_xinfo('documents')").all().map((r: any) => r.name)
     expect(colsBefore.some((n: string) => n.startsWith('q_'))).toBe(false)
 
-    // Bootstrap-time status check → ensureSchemaCompatibility → ensureDocumentGeneratedColumns.
-    await new MigrationService(adapter(sqlite) as any).getMigrationStatus()
+    // Bootstrap-time repair → ensureSchemaCompatibility → ensureDocumentGeneratedColumns.
+    await new MigrationService(adapter(sqlite) as any).ensureSchemaCompatibility()
 
     const colsAfter = sqlite.prepare("SELECT name FROM pragma_table_xinfo('documents')").all().map((r: any) => r.name)
     expect(colsAfter).toContain('q_tst_rating')
@@ -75,16 +75,28 @@ describe('MigrationService D45 — documents generated columns self-heal (data-d
       { name: 'rating', kind: 'scalar', type: 'integer', column: 'q_tst_rating' },
     ], '{"rating":5}')
     // First pass creates the column; second must not throw on the duplicate.
-    await new MigrationService(adapter(sqlite) as any).getMigrationStatus()
-    await new MigrationService(adapter(sqlite) as any).getMigrationStatus()
+    await new MigrationService(adapter(sqlite) as any).ensureSchemaCompatibility()
+    await new MigrationService(adapter(sqlite) as any).ensureSchemaCompatibility()
     const cols = sqlite.prepare("SELECT name FROM pragma_table_xinfo('documents')").all().map((r: any) => r.name)
     expect(cols).toContain('q_tst_rating')
+    sqlite.close()
+  })
+
+  it('the status path is read-only: it no longer runs the schema repair on every call', async () => {
+    const sqlite = new Database(':memory:')
+    seed(sqlite, 'testimonial', [
+      { name: 'rating', kind: 'scalar', type: 'integer', column: 'q_tst_rating' },
+    ], '{"rating":5}')
+    await new MigrationService(adapter(sqlite) as any).getMigrationStatus()
+    const cols = sqlite.prepare("SELECT name FROM pragma_table_xinfo('documents')").all().map((r: any) => r.name)
+    expect(cols).not.toContain('q_tst_rating')
     sqlite.close()
   })
 
   it('does not throw when document_types is absent', async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec("CREATE TABLE documents (id TEXT PRIMARY KEY, data TEXT NOT NULL DEFAULT '{}')")
+    await expect(new MigrationService(adapter(sqlite) as any).ensureSchemaCompatibility()).resolves.toBeUndefined()
     await expect(new MigrationService(adapter(sqlite) as any).getMigrationStatus()).resolves.toBeTruthy()
     sqlite.close()
   })

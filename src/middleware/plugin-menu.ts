@@ -2,6 +2,7 @@ import type { Context, Next } from 'hono'
 import type { Bindings, Variables } from '../app'
 import { PLUGIN_REGISTRY } from '../plugins/manifest-registry'
 import { resolvePluginMenuItems } from '../services/plugin-menu-singleton'
+import { getActivePluginSlugs } from '../services/active-plugin-slugs'
 
 // Build menu plugin data from the auto-generated registry.
 // Any plugin with an adminMenu entry in its manifest.json will
@@ -84,6 +85,13 @@ function renderMenuItem(item: { label: string; path: string; icon?: string }, cu
     </span>`
 }
 
+/** Admin JSON API paths, or a client that accepts JSON but not HTML: no sidebar to build. */
+export function isJsonRequest(path: string, accept: string | undefined): boolean {
+  if (path.startsWith('/admin/api/')) return true
+  const a = accept || ''
+  return a.includes('application/json') && !a.includes('text/html')
+}
+
 export function pluginMenuMiddleware() {
   return async (c: Context<{ Bindings: Bindings; Variables: Variables }>, next: Next) => {
     const path = new URL(c.req.url).pathname
@@ -91,36 +99,35 @@ export function pluginMenuMiddleware() {
       return next()
     }
 
-    // Collect menu items from active plugins using the registry
+    // JSON endpoints never render the sidebar: skip the work entirely.
+    if (isJsonRequest(path, c.req.header('Accept'))) {
+      return next()
+    }
+
+    // Collect menu items from active plugins using the registry. One cached list of active plugin
+    // slugs (per isolate, 30 s, dropped on activate/deactivate) replaces two D1 queries per request.
     const db = c.env.DB
     let activeMenuItems: Array<{ label: string; path: string; icon?: string; order: number }> = []
+    let activeIds = new Set<string>()
+    let activeIdsLoaded = false
     try {
-      const pluginIds = REGISTRY_MENU_PLUGINS.map(p => p.id)
-      if (pluginIds.length > 0) {
-        const placeholders = pluginIds.map(() => '?').join(',')
-        const result = await db.prepare(
-          `SELECT slug FROM documents WHERE type_id = 'plugin' AND tenant_id = 'default' AND slug IN (${placeholders}) AND q_plugin_status = 'active' AND is_current_draft = 1 AND deleted_at IS NULL`
-        ).bind(...pluginIds).all()
-
-        const activeIds = new Set((result.results || []).map((r: any) => r.slug))
-
-        for (const plugin of REGISTRY_MENU_PLUGINS) {
-          if (activeIds.has(plugin.id)) {
-            activeMenuItems.push({
-              label: plugin.label,
-              path: plugin.path,
-              icon: plugin.icon,
-              order: plugin.order,
-            })
-          }
-        }
-
-        // Sort by order
-        activeMenuItems.sort((a, b) => a.order - b.order)
-      }
+      activeIds = await getActivePluginSlugs(db)
+      activeIdsLoaded = true
     } catch {
       // DB not ready or plugin table doesn't exist yet
     }
+
+    for (const plugin of REGISTRY_MENU_PLUGINS) {
+      if (activeIds.has(plugin.id)) {
+        activeMenuItems.push({
+          label: plugin.label,
+          path: plugin.path,
+          icon: plugin.icon,
+          order: plugin.order,
+        })
+      }
+    }
+    activeMenuItems.sort((a, b) => a.order - b.order)
 
     // Append user plugin menu items from the singleton (config.plugins.register entries).
     // Must DB-check active status — a plugin disabled via the admin UI stays in config
@@ -128,22 +135,8 @@ export function pluginMenuMiddleware() {
     const user = c.get('user') as { role?: string } | undefined
     const singletonItems = resolvePluginMenuItems(user ? { role: user.role } : undefined)
 
-    // Collect unique pluginIds that have entries, query their active status in one shot.
-    const singletonPluginIds = [...new Set(
-      singletonItems.map(i => i.pluginId).filter((id): id is string => !!id)
-    )]
-    let activeSingletonIds = new Set<string>()
-    try {
-      if (singletonPluginIds.length > 0) {
-        const ph = singletonPluginIds.map(() => '?').join(',')
-        const result = await db.prepare(
-          `SELECT slug FROM documents WHERE type_id = 'plugin' AND tenant_id = 'default' AND slug IN (${ph}) AND q_plugin_status = 'active' AND is_current_draft = 1 AND deleted_at IS NULL`
-        ).bind(...singletonPluginIds).all()
-        activeSingletonIds = new Set((result.results || []).map((r: any) => r.slug))
-      }
-    } catch {
-      // DB not ready — fail open so singleton items without pluginId still render
-    }
+    // On a DB failure the active set stays empty: items without pluginId still render.
+    const activeSingletonIds = activeIdsLoaded ? activeIds : new Set<string>()
 
     const existingPaths = new Set(activeMenuItems.map(i => i.path))
     for (const item of singletonItems) {
