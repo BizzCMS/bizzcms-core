@@ -30,7 +30,7 @@ import {
 import { getCoreVersion } from './utils/version'
 import { bootstrapMiddleware } from './middleware/bootstrap'
 import { metricsMiddleware } from './middleware/metrics'
-import { csrfProtection } from './middleware/csrf'
+import { csrfProtection, keepResponseCookies } from './middleware/csrf'
 import { securityHeadersMiddleware } from './middleware/security-headers'
 import { createDatabaseToolsAdminRoutes } from './plugins/core-plugins/database-tools-plugin/admin-routes'
 import { emailPluginV3 as emailPlugin } from './plugins/core-plugins/email-plugin'
@@ -790,7 +790,9 @@ export function createBizzCMSApp(config: BizzCMSConfig = {}): BizzCMSApp {
     const reqUrl = new URL(c.req.url)
     const requestBaseURL = `${reqUrl.protocol}//${reqUrl.host}`
     const auth = createAuth(c.env, config.auth?.extendBetterAuth, requestBaseURL)
-    return auth.handler(c.req.raw)
+    // Better Auth's own Response carries the session cookie; without this, a Set-Cookie set
+    // earlier on `c` (csrf_token on a GET) replaced it and the visitor was signed out.
+    return keepResponseCookies(c, await auth.handler(c.req.raw))
   })
 
   // Test cleanup routes (only for development/test environments)

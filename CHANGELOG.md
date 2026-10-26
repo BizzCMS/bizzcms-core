@@ -2,6 +2,10 @@
 
 ## BizzCMS
 
+### 3.0.0-beta.28-bizzcms.12 (Unreleased, packed locally)
+
+- OAuth sign-in (e.g. Google, `/auth/callback/google`) kept the visitor signed out. The return from the provider is a cross-site GET, so the browser leaves out the SameSite=Strict `csrf_token` cookie; `csrfProtection()` then set a new one on the context before Better Auth answered, and Hono's Context `res` setter replaced the answer's Set-Cookie headers with that one, so the 302 carried only `csrf_token` and no session cookie. Two fixes: the Better Auth catch-all returns its Response through the new `keepResponseCookies(c, res)` (exported from `middleware`), which appends the Response's cookies to the context first so all of them reach the browser once each; and GETs to `/auth/callback/*` and `/auth/oauth2/callback/*` no longer set a `csrf_token` (it can never be sent there, so it only rotated the visitor's token). Sites with a workaround for this can drop it.
+
 ### 3.0.0-beta.28-bizzcms.11 (Unreleased, packed locally)
 
 - Fewer sequential D1/KV round trips per admin request (trivial admin endpoints took 0.5-0.75 s wall for ~12 ms CPU because ~13 lookups ran one after another). Behaviour and permission checks are unchanged.

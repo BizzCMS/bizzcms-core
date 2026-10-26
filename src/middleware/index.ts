@@ -25,7 +25,7 @@ export {
 export { metricsMiddleware } from './metrics'
 
 // CSRF protection middleware
-export { csrfProtection, generateCsrfToken, validateCsrfToken } from './csrf'
+export { csrfProtection, generateCsrfToken, validateCsrfToken, keepResponseCookies } from './csrf'
 
 // Rate limiting middleware
 export { rateLimit } from './rate-limit'

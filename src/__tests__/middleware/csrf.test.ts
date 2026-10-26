@@ -5,6 +5,7 @@ import {
   validateCsrfToken,
   csrfProtection,
   arrayBufferToBase64Url,
+  keepResponseCookies,
 } from '../../middleware/csrf'
 
 const TEST_SECRET = 'test-csrf-secret-for-unit-tests'
@@ -494,6 +495,63 @@ describe('csrfProtection middleware', () => {
       const body = await res.json()
       expect(body.error).toBe('CSRF token missing')
       expect(body.status).toBe(403)
+    })
+  })
+
+  // Google sign-in on a live site (2026-10-26): the return from the provider is a cross-site GET, so
+  // the SameSite=Strict csrf_token cookie is not sent. The csrf_token the middleware then set on `c`
+  // pushed Better Auth's session cookie out of the handler's Response (Hono Context `res` setter).
+  describe('auth handler Responses keep their Set-Cookie headers', () => {
+    const SESSION = '__Secure-better-auth.session_token=abc.def; Path=/; HttpOnly; Secure; SameSite=Lax'
+    const STATE = '__Secure-better-auth.state=; Max-Age=0; Path=/'
+
+    // `touchRes`: an earlier middleware reads c.res, which is what makes Hono's setter drop the
+    // returned Response's cookies.
+    function createAuthApp({ touchRes = true, keep = true } = {}) {
+      const app = new Hono()
+      if (touchRes) {
+        app.use('*', async (c, next) => {
+          void c.res
+          await next()
+        })
+      }
+      app.use('*', csrfProtection())
+      app.get('/auth/*', (c) => {
+        const headers = new Headers({ Location: '/' })
+        headers.append('Set-Cookie', SESSION)
+        headers.append('Set-Cookie', STATE)
+        const res = new Response(null, { status: 302, headers })
+        return keep ? keepResponseCookies(c, res) : res
+      })
+      return app
+    }
+
+    it('GET /auth/callback/google without a csrf_token cookie keeps the session cookie', async () => {
+      const res = await createAuthApp().request('/auth/callback/google?code=x&state=y', {}, { JWT_SECRET: TEST_SECRET })
+      expect(res.status).toBe(302)
+      expect(res.headers.getSetCookie()).toEqual([SESSION, STATE])
+    })
+
+    it('does not set a csrf_token on OAuth callbacks', async () => {
+      for (const path of ['/auth/callback/google', '/auth/oauth2/callback/custom']) {
+        const res = await createAuthApp({ keep: false }).request(path, {}, { JWT_SECRET: TEST_SECRET })
+        expect(res.headers.getSetCookie().some((c) => c.startsWith('csrf_token='))).toBe(false)
+      }
+    })
+
+    it('other auth handler GETs keep the handler cookies next to a new csrf_token, once each', async () => {
+      const res = await createAuthApp().request('/auth/verify-email?token=t', {}, { JWT_SECRET: TEST_SECRET })
+      const cookies = res.headers.getSetCookie()
+      expect(cookies.filter((c) => c.startsWith('csrf_token='))).toHaveLength(1)
+      expect(cookies.filter((c) => c === SESSION)).toHaveLength(1)
+      expect(cookies.filter((c) => c === STATE)).toHaveLength(1)
+    })
+
+    it('keeps the cookies once each when no earlier middleware read c.res', async () => {
+      const res = await createAuthApp({ touchRes: false }).request('/auth/verify-email', {}, { JWT_SECRET: TEST_SECRET })
+      const cookies = res.headers.getSetCookie()
+      expect(cookies.filter((c) => c === SESSION)).toHaveLength(1)
+      expect(cookies.filter((c) => c === STATE)).toHaveLength(1)
     })
   })
 

@@ -6,6 +6,7 @@
  *
  * Flow:
  *   GET  — ensureCsrfCookie(): reuse existing valid cookie or set a new one
+ *          (not on OAuth callbacks, see isOAuthCallbackPath)
  *   POST/PUT/DELETE/PATCH — validate X-CSRF-Token header === csrf_token cookie, HMAC valid
  *
  * Exempt:
@@ -164,6 +165,32 @@ function isExemptPath(path: string, extraExemptPaths: string[] = []): boolean {
   return false
 }
 
+/**
+ * OAuth provider returns (/auth/callback/<provider>, /auth/oauth2/callback/<id>) are cross-site
+ * navigations, so the browser never sends the SameSite=Strict csrf_token cookie on them. Setting a
+ * fresh one there only rotates the visitor's token (and put a Set-Cookie on `c` that used to push
+ * Better Auth's session cookie out of the response, see keepResponseCookies).
+ */
+function isOAuthCallbackPath(path: string): boolean {
+  return path.startsWith('/auth/callback/') || path.startsWith('/auth/oauth2/callback/')
+}
+
+/**
+ * Return a handler-built Response without losing its Set-Cookie headers.
+ *
+ * When a handler returns its own Response and `c.res` already exists (any earlier middleware read
+ * it), Hono's Context `res` setter (hono/dist/context.js) deletes the new Response's Set-Cookie
+ * headers and copies only the ones set earlier on `c` — e.g. the csrf_token from ensureCsrfCookie.
+ * Appending the Response's cookies to `c` first makes the setter carry all of them over, once each.
+ * With no earlier `c.res` the setter keeps the Response as is, cookies included.
+ */
+export function keepResponseCookies(c: Context, res: Response): Response {
+  for (const cookie of res.headers.getSetCookie()) {
+    c.header('Set-Cookie', cookie, { append: true })
+  }
+  return res
+}
+
 // ============================================================================
 // Middleware
 // ============================================================================
@@ -196,7 +223,7 @@ export function csrfProtection(options: CsrfOptions = {}) {
 
     // Safe methods — just ensure cookie, then pass through
     if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
-      await ensureCsrfCookie(c, secret)
+      if (!isOAuthCallbackPath(path)) await ensureCsrfCookie(c, secret)
       await next()
       return
     }
