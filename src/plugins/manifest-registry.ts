@@ -788,7 +788,7 @@ export const PLUGIN_REGISTRY: Record<string, PluginRegistryEntry> = {
     "adminMenu": {
       "label": "Turnstile",
       "icon": "shield-check",
-      "path": "/admin/plugins/turnstile/settings",
+      "path": "/admin/plugins/turnstile",
       "order": 100
     }
   },
